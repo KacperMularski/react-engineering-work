@@ -1,0 +1,120 @@
+[
+  {
+    "issue": "Awaria układu wtryskowego",
+    "symptomRequirements": [
+      { "field": "engineFailure_unevenWork", "values": [true] },
+      { "field": "engineFailure_increasedFuelConsumption", "values": [true] },
+      { "field": "engineFailure_lossOfEnginePower", "values": [true] },
+      { "field": "engineFailure_exhaustPipeSmokeColor", "values": ["black"] }
+    ],
+    "minSymptoms": 3,
+    "solution": "Wymiana lub regeneracja wtryskiwaczy"
+  },
+  {
+    "issue": "Awaria turbosprężarki",
+    "symptomRequirements": [
+      { "field": "engineFailure_lossOfEnginePower", "values": [true] },
+      { "field": "engineFailure_whenAccelerating", "values": [true] },
+      { "field": "engineFailure_lossOfEnginePower", "values": [true] },
+      { "field": "engineFailure_exhaustPipeSmokeColor", "values": ["blue"] },
+      { "field": "engineSuperchargingType", "values": ["turbo"] }
+    ],
+    "minSymptoms": 4,
+    "solution": "Sprawdzenie turbosprężarki i ewentualna regeneracja"
+  },
+  {
+    "issue": "Awaria pompy wysokiego ciśnienia",
+    "symptomRequirements": [
+      { "field": "engineFailure_whenAccelerating", "values": [true] },
+      { "field": "engineFailure_lossOfEnginePower", "values": [true] },
+      { "field": "engineFailure_suddenEngineStop:", "values": [true] },
+      { "field": "fuelType", "values": ["diesel"] }
+    ],
+    "minSymptoms": 4,
+    "solution": "Czyszczenie pompy lub wymiana"
+  },
+  {
+    "issue": "Zużyte koło dwumasowe",
+    "symptomRequirements": [
+      { "field": "engineFailure_vibrationsWhileDriving", "values": [true] },
+      { "field": "engineFailure_engineFailure_heavyShiftingGears", "values": [true] },
+      { "field": "engineFailure_noisyWork", "values": [true] },
+      { "field": "engineFailure_lossOfEnginePower", "values": [true] },
+      { "field": "engineFailure_suddenEngineStop:", "values": [true] }
+    ],
+    "minSymptoms": 3,
+    "solution": "Wymiana koła dwumasowego (sprawdzić sprzęgło)"
+  },
+  {
+    "issue": "Zużyte świece żarowe",
+    "symptomRequirements": [
+      { "field": "fuelType", "values": ["diesel"] },
+      { "field": "engineFailure_warningLightsGlowPlug", "values": [true] },
+      { "field": "engineFailure_temperatureDifficultyStartingTheEngine", "values": ["cold"] },
+      { "field": "engineFailure_exhaustPipeSmokeColor", "values": ["white"] }
+    ],
+    "minSymptoms": 4,
+    "solution": "Wymiana świec na nowe"
+  },
+  {
+    "issue": "Awaria przepływomierza powietrza",
+    "symptomRequirements": [
+      { "field": "engineFailure_warningLightsCheckEngine", "values": [true] },
+      { "field": "engineFailure_increasedFuelConsumption", "values": [true] },
+      { "field": "engineFailure_unevenWork", "values": [true] },
+      { "field": "engineFailure_temperatureDifficultyStartingTheEngine", "values": ["both"] },
+      { "field": "engineFailure_lossOfEnginePower", "values": [true] }
+    ],
+    "minSymptoms": 3,
+    "solution": "Czyszczenie lub wymiana"
+  },
+  {
+    "issue": "Awaria układu recyrkulacji spalin (EGR)",
+    "symptomRequirements": [
+      { "field": "engineFailure_warningLightsCheckEngine", "values": [true] },
+      { "field": "engineFailure_increasedFuelConsumption", "values": [true] },
+      { "field": "engineFailure_exhaustPipeSmokeColor", "values": ["black"] }
+    ],
+    "minSymptoms": 2,
+    "solution": "Czyszczenie lub wymiana modułu sterującego"
+  },
+  {
+    "issue": "Awaria rozrządu",
+    "symptomRequirements": [
+      { "field": "engineFailure_noisyWork", "values": [true] },
+      { "field": "engineFailure_noises", "values": [true] },
+      { "field": "engineFailure_suddenEngineStop", "values": [true] }
+    ],
+    "minSymptoms": 3,
+    "solution": "Wymiana rozrządu (komplet)"
+  },
+  {
+    "issue": "Awaria pompy oleju",
+    "symptomRequirements": [
+      { "field": "engineFailure_warningLightsEngineOil", "values": [true] },
+      { "field": "engineFailure_noisyWork", "values": [true] }
+    ],
+    "minSymptoms": 2,
+    "solution": "Sprawdzenie ciśnienia oleju"
+  },
+  {
+    "issue": "Czujnik położenia wałka rozrządu",
+    "symptomRequirements": [
+      { "field": "engineFailure_warningLightsEngineOil", "values": [true] },
+      { "field": "engineFailure_unevenWork", "values": [true] },
+      { "field": "engineFailure_lossOfEnginePower", "values": [true] },
+      { "field": "engineFailure_whenAccelerating", "values": [true] },
+      { "field": "engineFailure_temperatureDifficultyStartingTheEngine", "values": ["both"] }
+    ],
+    "minSymptoms": 4,
+    "solution": "Pomiary i wymiana na nowy"
+  },
+  {
+    "issue": "Wyciek płynu chłodniczego lub awaria pompy wody",
+    "symptomRequirements": [
+      { "field": "engineFailure_warningLightsEngineCoolant", "values": [true] }
+    ],
+    "minSymptoms": 1,
+    "solution": "Określenie lokalizacji wycieków, sprawdzenie pompy"
+  }
+]
