@@ -105,15 +105,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (email, password) => {
-    await createUserWithEmailAndPassword(auth, email, password);
-    const user = auth.currentUser;
-    const uid = user.uid;
-
-    setDoc(doc(db, 'users', uid), {
-      email: user.email,
-      role: 'USER',
-    });
-
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
     setSession(user);
 
     dispatch({
@@ -122,6 +115,8 @@ export const AuthProvider = ({ children }) => {
         user,
       },
     });
+
+    return userCredential;
   };
 
   const updatePasswordForCurrentUser = (password) => {

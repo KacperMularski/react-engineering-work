@@ -1,4 +1,4 @@
-import React, { useState, useRef, Navigate } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -28,8 +28,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import * as Yup from 'yup';
 import useAuth from 'app/hooks/useAuth';
 
-import carBrands from './carBrands.json';
-import carModels from './carModels.json';
+import { getDatabase, ref, get } from 'firebase/database';
 
 import SelectField from './form-elements/SelectField';
 import AutocompleteField from './form-elements/AutocompleteField';
@@ -40,6 +39,7 @@ import glowPlugIcon from './form-elements/icons/glow-plug-icon.png';
 import checkEngineIcon from './form-elements/icons/check-engine-icon.png';
 import engineOilIcon from './form-elements/icons/engine-oil-icon.png';
 import engineCoolantIcon from './form-elements/icons/engine-coolant-icon.png';
+import batteryIcon from './form-elements/icons/battery-icon.png';
 import compute from 'app/decision-making-system/InterferenceCompute';
 const sleep = (time) => new Promise((acc) => setTimeout(acc, time));
 
@@ -49,6 +49,41 @@ function RepairOrder() {
   const [selectedFaultType, setSelectedFaultType] = useState('');
   const [selectedBrand, setSelectedBrand] = useState(null);
   const [selectedModel, setSelectedModel] = useState(null);
+
+  const [carBrands, setCarBrands] = useState([]);
+  const [carModels, setCarModels] = useState([]);
+
+  const db = getDatabase();
+  const dataModelsRef = ref(db, 'models');
+  const dataBrandsRef = ref(db, 'brands');
+
+  useEffect(() => {
+    get(dataModelsRef)
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          setCarModels(data);
+        } else {
+          console.log('Brak danych w bazie.');
+        }
+      })
+      .catch((error) => {
+        console.error('Błąd pobierania danych:', error);
+      });
+
+    get(dataBrandsRef)
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          setCarBrands(data);
+        } else {
+          console.log('Brak danych w bazie.');
+        }
+      })
+      .catch((error) => {
+        console.error('Błąd pobierania danych:', error);
+      });
+  }, []);
 
   const handleFaultTypeChange = (value) => {
     setSelectedFaultType(value);
@@ -88,6 +123,7 @@ function RepairOrder() {
         engineFailure_warningLightsCheckEngine: false,
         engineFailure_warningLightsEngineCoolant: false,
         engineFailure_warningLightsEngineOil: false,
+        engineFailure_warningLightsBattery: false,
       }}
       onSubmit={async (values) => {
         await sleep(3000);
@@ -98,15 +134,15 @@ function RepairOrder() {
       <FormikStep
         validationSchema={object({
           faultType: Yup.string().required('To pole jest wymagane'),
+          description: Yup.string().required('To pole jest wymagane'),
         })}
-        label="Opisz rodzaj usterki"
       >
         <Box paddingBottom={2}>
           <SelectField
             name="faultType"
             label="Wybierz rodzaj usterki"
             options={[
-              { label: 'Silnik', value: 'Silnik' },
+              { label: 'Silnik i osprzęt', value: 'Silnik' },
               { label: 'Układ hamulcowy', value: 'Układ hamulcowy' },
               { label: 'Klimatyzacja', value: 'Klimatyzacja' },
               { label: 'Zawieszenie', value: 'Zawieszenie' },
@@ -258,6 +294,12 @@ function RepairOrder() {
                       name="engineFailure_warningLightsEngineOil" // Ustaw nazwę pola
                     />
                   </Box>
+                  <Box paddingBottom={2}>
+                    <img src={batteryIcon} />
+                    <SwitchField
+                      name="engineFailure_warningLightsBattery" // Ustaw nazwę pola
+                    />
+                  </Box>
                 </SimpleCard>
               </Stack>
             </>
@@ -273,7 +315,7 @@ function RepairOrder() {
                   multiline
                   variant="outlined"
                   name="description"
-                  placeholder="Wprowadź bardziej szczegółowy opis usterki..."
+                  placeholder="Wprowadź opis usterki..."
                   component={TextField}
                   minRows={3}
                   sx={{ width: '100%' }}

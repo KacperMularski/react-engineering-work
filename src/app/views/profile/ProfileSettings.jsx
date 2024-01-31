@@ -196,45 +196,49 @@ const ProfileSettings = () => {
       </SimpleCard>
       <SimpleCard title="Ustawianie awatara">
         <Grid container spacing={2} justifyContent="center">
-          <Grid item md={20}>
-            <Item>
-              <input
-                type="file"
-                ref={(input) => setFileInput(input)}
-                style={{ display: 'none' }}
-                onChange={handleFileChange}
-              />
-              <Button
-                variant="contained"
-                component="label"
-                onClick={handleUploadWindow}
-                endIcon={<UploadFileIcon />}
-              >
-                Wybierz plik
-              </Button>
+          <Grid item xs={12} md={4}>
+            <input
+              type="file"
+              ref={(input) => setFileInput(input)}
+              style={{ display: 'none' }}
+              onChange={handleFileChange}
+            />
+            <Button
+              variant="contained"
+              component="label"
+              onClick={handleUploadWindow}
+              endIcon={<UploadFileIcon />}
+            >
+              Wybierz plik
+            </Button>
 
-              {!avatar && 'Nie wybrano pliku'}
-              {avatar && avatar.name}
-            </Item>
+            {!avatar && 'Nie wybrano pliku'}
+            {avatar && avatar.name}
           </Grid>
-          <Grid item xs={4} md={20}>
-            <Item>
-              <Button
-                variant="contained"
-                component="label"
-                onClick={handleUpload}
-                endIcon={<DownloadingIcon />}
-              >
-                Załaduj plik
-              </Button>
-              <progress value={progress} max="100" />
-            </Item>
+          <Grid item xs={12} md={4}>
+            <Button
+              variant="contained"
+              component="label"
+              onClick={handleUpload}
+              endIcon={<DownloadingIcon />}
+            >
+              Załaduj plik
+            </Button>
+            <progress value={progress} max="100" />
           </Grid>
-          <Grid item xs={4} md={20}>
-            <Item>
-              <Avatar src={avatarURL} alt="Awatar" sx={{ mx: 'auto', my: 2 }} />
-              Podgląd awatara
-            </Item>
+          <Grid
+            item
+            xs={12}
+            md={4}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            Podgląd awatara
+            <Avatar src={avatarURL} alt="Awatar" sx={{ mx: 'auto', my: 2 }} />
           </Grid>
         </Grid>
       </SimpleCard>

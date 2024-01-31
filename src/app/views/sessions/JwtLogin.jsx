@@ -10,6 +10,9 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import classes from './JwtLogin.module.css';
 import * as Yup from 'yup';
 
+import { doc, query, getDocs, collection, where } from 'firebase/firestore';
+import { db } from 'firebase';
+
 const FlexBox = styled(Box)(() => ({ display: 'flex', alignItems: 'center' }));
 
 const JustifyBox = styled(FlexBox)(() => ({ justifyContent: 'center' }));
@@ -41,7 +44,6 @@ const initialValues = {
   remember: true,
 };
 
-// form field validation schema
 const validationSchema = Yup.object().shape({
   password: Yup.string()
     .min(6, 'Hasło musi zawierać przynajmniej 6 znaków')
@@ -58,6 +60,7 @@ const JwtLogin = () => {
   const { login } = useAuth();
 
   const handleFirebaseError = (loginError) => {
+    setLoginError('');
     if (loginError.code === 'auth/invalid-login-credentials') {
       setLoginError('Nieprawidłowe dane logowania');
     } else {
@@ -68,6 +71,18 @@ const JwtLogin = () => {
   const handleFormSubmit = async (values) => {
     setLoading(true);
     setLoginError(null);
+    try {
+      const userRef = collection(db, 'users');
+      const q = query(userRef, where('email', '==', values.email), where('blocked', '==', true));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        setLoginError('Konto zostało zablokowane. Skontaktuj się z administracją.');
+        setLoading(false);
+        return;
+      }
+    } catch {
+      setLoginError('Wystąpił nieoczekiwany błąd. Proszę spróbuj ponownie później.');
+    }
     try {
       await login(values.email, values.password);
       navigate('/');

@@ -8,6 +8,8 @@ import { Formik } from 'formik';
 import React, { useState } from 'react';
 import classes from './JwtRegister.module.css';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { db } from '../../../firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 import * as Yup from 'yup';
 
@@ -39,6 +41,8 @@ const initialValues = {
   email: '',
   password: '',
   passwordRepeat: '',
+  name: '',
+  surname: '',
   remember: true,
 };
 
@@ -51,6 +55,8 @@ const validationSchema = Yup.object().shape({
     .oneOf([Yup.ref('password')], 'Hasło nie pasuje!')
     .required('Hasło jest wymagane'),
   email: Yup.string().email('Nieprawidłowy adres email').required('Adres email jest wymagany!'),
+  name: Yup.string().required('Imie jest wymagane'),
+  surname: Yup.string().required('Nazwisko jest wymagane'),
 });
 
 const JwtRegister = () => {
@@ -64,6 +70,7 @@ const JwtRegister = () => {
     if (registerError.code === 'auth/email-already-in-use') {
       setRegisterError('Podany adres email jest już w użyciu');
     } else {
+      console.log(registerError);
       setRegisterError('Wystąpił nieoczekiwany błąd. Proszę spróbuj ponownie później.');
     }
   };
@@ -72,7 +79,17 @@ const JwtRegister = () => {
     setLoading(true);
     setRegisterError(null);
     try {
-      await register(values.email, values.password);
+      const userCredential = await register(values.email, values.password);
+      const user = userCredential.user;
+      const uid = user.uid;
+      const useremail = user.email;
+
+      setDoc(doc(db, 'users', uid), {
+        email: useremail,
+        role: 'USER',
+        name: values.name,
+        surname: values.surname,
+      });
       navigate('/');
       setLoading(false);
     } catch (registerError) {
@@ -146,6 +163,36 @@ const JwtRegister = () => {
                       onChange={handleChange}
                       helperText={touched.passwordRepeat && errors.passwordRepeat}
                       error={Boolean(errors.passwordRepeat && touched.passwordRepeat)}
+                      sx={{ mb: 2 }}
+                    />
+
+                    <TextField
+                      fullWidth
+                      size="small"
+                      name="name"
+                      type="text"
+                      label="Imie"
+                      variant="outlined"
+                      onBlur={handleBlur}
+                      value={values.name}
+                      onChange={handleChange}
+                      helperText={touched.name && errors.name}
+                      error={Boolean(errors.name && touched.name)}
+                      sx={{ mb: 2 }}
+                    />
+
+                    <TextField
+                      fullWidth
+                      size="small"
+                      name="surname"
+                      type="text"
+                      label="Nazwisko"
+                      variant="outlined"
+                      onBlur={handleBlur}
+                      value={values.surname}
+                      onChange={handleChange}
+                      helperText={touched.surname && errors.surname}
+                      error={Boolean(errors.surname && touched.surname)}
                       sx={{ mb: 2 }}
                     />
 

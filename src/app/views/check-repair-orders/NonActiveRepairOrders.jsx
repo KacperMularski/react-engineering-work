@@ -84,6 +84,19 @@ const DialogContent = styled(MuiDialogContent)(({ theme }) => ({
 }));
 
 function NonActiveRepairOrders() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 599);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 599);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
   const { user } = useAuth();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(2);
@@ -206,11 +219,15 @@ function NonActiveRepairOrders() {
               <StyledTable>
                 <TableHead>
                   <TableRow>
-                    <TableCell align="left">Rodzaj usterki</TableCell>
+                    <TableCell align="left">{isMobile ? 'Rd.ust.' : 'Rodzaj usterki'}</TableCell>
                     <TableCell align="center">Marka</TableCell>
                     <TableCell align="center">Model</TableCell>
-                    <TableCell align="center">Data</TableCell>
-                    <TableCell align="center">Status</TableCell>
+                    <TableCell align="center" sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                      Data
+                    </TableCell>
+                    <TableCell align="center" sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                      Status
+                    </TableCell>
                     <TableCell align="right">Więcej</TableCell>
                   </TableRow>
                 </TableHead>
@@ -221,12 +238,20 @@ function NonActiveRepairOrders() {
                         <TableCell align="left">{order.data.faultType}</TableCell>
                         <TableCell align="center">{order.data.carBrand}</TableCell>
                         <TableCell align="center">{order.data.carModel}</TableCell>
-                        <TableCell align="center">
+                        <TableCell
+                          align="center"
+                          sx={{ display: { xs: 'none', md: 'table-cell' } }}
+                        >
                           {order.data.dateTime
                             ? order.data.dateTime.toDate().toLocaleString()
                             : '-'}
                         </TableCell>
-                        <TableCell align="center">{order.data.status}</TableCell>
+                        <TableCell
+                          align="center"
+                          sx={{ display: { xs: 'none', md: 'table-cell' } }}
+                        >
+                          {order.data.status}
+                        </TableCell>
                         <TableCell align="right">
                           <IconButton onClick={() => handleOpenDialog(order)}>
                             <Icon sx={{ color: 'blue' }}>info</Icon>

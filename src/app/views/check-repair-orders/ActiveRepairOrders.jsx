@@ -95,6 +95,19 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 function ActiveRepairOrders() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 599);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 599);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
   const { user } = useAuth();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(2);
@@ -158,12 +171,14 @@ function ActiveRepairOrders() {
         status: 'Anulowano',
         isActive: false,
       });
-      console.log('Dokument został zaktualizowany pomyślnie!');
     } catch (error) {
       console.error('Błąd podczas aktualizacji dokumentu:', error);
     }
     setOpenDialogConf(false);
     setOpenSuccessSnackbar(true);
+    startLoading();
+    fetchTotalCount();
+    fetchData();
   };
 
   const handleCloseSuccessSnackbar = () => {
@@ -247,12 +262,16 @@ function ActiveRepairOrders() {
               <StyledTable>
                 <TableHead>
                   <TableRow>
-                    <TableCell align="left">Rodzaj usterki</TableCell>
+                    <TableCell align="left">{isMobile ? 'Rd.ust.' : 'Rodzaj usterki'}</TableCell>
                     <TableCell align="center">Marka</TableCell>
                     <TableCell align="center">Model</TableCell>
                     <TableCell align="center">Nazwisko</TableCell>
-                    <TableCell align="center">Data</TableCell>
-                    <TableCell align="center">Status</TableCell>
+                    <TableCell align="center" sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                      Data
+                    </TableCell>
+                    <TableCell align="center" sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                      Status
+                    </TableCell>
                     <TableCell align="center">Anuluj</TableCell>
                     <TableCell align="right">Więcej</TableCell>
                   </TableRow>
@@ -265,12 +284,18 @@ function ActiveRepairOrders() {
                         <TableCell align="center">{order.data.carBrand}</TableCell>
                         <TableCell align="center">{order.data.carModel}</TableCell>
                         <TableCell align="center">{order.data.surname}</TableCell>
-                        <TableCell align="center">
+                        <TableCell
+                          align="center"
+                          sx={{ display: { xs: 'none', md: 'table-cell' } }}
+                        >
                           {order.data.dateTime
                             ? order.data.dateTime.toDate().toLocaleString()
                             : '-'}
                         </TableCell>
-                        <TableCell align="center">
+                        <TableCell
+                          align="center"
+                          sx={{ display: { xs: 'none', md: 'table-cell' } }}
+                        >
                           {order.data.status === 'Weryfikacja' ? (
                             <Alert variant="filled" severity="info">
                               {order.data.status}

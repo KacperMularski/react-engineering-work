@@ -32,7 +32,7 @@ const SelectField = ({ name, label, options, onChange }) => {
         error={Boolean(errors[name] && touched[name])}
       >
         {options.map((option) => (
-          <MenuItem key={option.value} value={option.value}>
+          <MenuItem key={option.value} value={option.value} disabled={option.disabled}>
             {option.label}
           </MenuItem>
         ))}

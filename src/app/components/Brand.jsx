@@ -1,15 +1,16 @@
+import React from 'react';
 import { Box, styled } from '@mui/material';
 import useSettings from 'app/hooks/useSettings';
 import { Span } from './Typography';
 
-const BrandRoot = styled(Box)(() => ({
+const BrandRoot = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  padding: '20px 18px 20px 29px',
+  padding: theme.spacing(2),
 }));
 
-const StyledSpan = styled(Span)(({ mode }) => ({
+const StyledSpan = styled(Span)(({ mode, theme }) => ({
   fontSize: 18,
   marginLeft: '.5rem',
   display: mode === 'compact' ? 'none' : 'block',

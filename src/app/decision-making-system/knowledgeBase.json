@@ -116,5 +116,92 @@
     ],
     "minSymptoms": 1,
     "solution": "Określenie lokalizacji wycieków, sprawdzenie pompy"
+  },
+  {
+    "issue": "Awaria alternatora",
+    "symptomRequirements": [
+      { "field": "engineFailure_warningLightsBattery", "values": [true] },
+      { "field": "engineFailure_noisyWork", "values": [true] },
+      { "field": "engineFailure_lossOfEnginePower", "values": [true] },
+      { "field": "engineFailure_vibrationsWhileDriving", "values": [true] }
+    ],
+    "minSymptoms": 3,
+    "solution": "Sprawdzenie i wymiana alternatora"
+  },
+  {
+    "issue": "Uszkodzony termostat",
+    "symptomRequirements": [
+      { "field": "engineFailure_warningLightsEngineCoolant", "values": [true] },
+      { "field": "engineFailure_temperatureDifficultyStartingTheEngine", "values": ["both"] },
+      { "field": "engineFailure_increasedFuelConsumption", "values": [true] }
+    ],
+    "minSymptoms": 2,
+    "solution": "Wymiana termostatu"
+  },
+  {
+    "issue": "Uszkodzony czujnik położenia przepustnicy",
+    "symptomRequirements": [
+      { "field": "engineFailure_warningLightsCheckEngine", "values": [true] },
+      { "field": "engineFailure_unevenWork", "values": [true] },
+      { "field": "engineFailure_whenAccelerating", "values": [true] }
+    ],
+    "minSymptoms": 3,
+    "solution": "Sprawdzenie i wymiana czujnika"
+  },
+  {
+    "issue": "Uszkodzony akumulator",
+    "symptomRequirements": [
+      { "field": "engineFailure_temperatureDifficultyStartingTheEngine", "values": ["cold"] },
+      { "field": "engineFailure_warningLightsBattery", "values": [true] }
+    ],
+    "minSymptoms": 2,
+    "solution": "Test i wymiana akumulatora"
+  },
+  {
+    "issue": "Nieszczelny układ wydechowy",
+    "symptomRequirements": [
+      { "field": "engineFailure_noisyWork", "values": [true] },
+      { "field": "engineFailure_exhaustPipeSmokeColor", "values": ["black"] }
+    ],
+    "minSymptoms": 2,
+    "solution": "Sprawdzenie i naprawa nieszczelności układu wydechowego"
+  },
+  {
+    "issue": "Uszkodzone sprzęgło",
+    "symptomRequirements": [
+      { "field": "engineFailure_heavyShiftingGears", "values": [true] },
+      { "field": "engineFailure_vibrationsWhileDriving", "values": [true] }
+    ],
+    "minSymptoms": 2,
+    "solution": "Sprawdzenie i wymiana sprzęgła"
+  },
+  {
+    "issue": "Uszkodzona pompa paliwa",
+    "symptomRequirements": [
+      { "field": "engineFailure_lossOfEnginePower", "values": [true] },
+      { "field": "engineFailure_suddenEngineStop", "values": [true] },
+      { "field": "fuelType", "values": ["gasoline"] }
+    ],
+    "minSymptoms": 2,
+    "solution": "Wymiana pompy paliwa"
+  },
+  {
+    "issue": "Uszkodzone świece zapłonowe",
+    "symptomRequirements": [
+      { "field": "engineFailure_unevenWork", "values": [true] },
+      { "field": "engineFailure_temperatureDifficultyStartingTheEngine", "values": ["cold"] },
+      { "field": "fuelType", "values": ["gasoline"] }
+    ],
+    "minSymptoms": 3,
+    "solution": "Wymiana świec zapłonowych"
+  },
+  {
+    "issue": "Uszkodzona pompa wspomagania kierownicy",
+    "symptomRequirements": [
+      { "field": "engineFailure_noises", "values": [true] },
+      { "field": "engineFailure_vibrationsWhileDriving", "values": [true] }
+    ],
+    "minSymptoms": 2,
+    "solution": "Sprawdzenie i wymiana pompy wspomagania"
   }
 ]

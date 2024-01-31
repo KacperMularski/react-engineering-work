@@ -14,15 +14,26 @@ import {
   Typography,
   Alert,
 } from '@mui/material';
-import { DatePicker } from 'formik-mui-lab';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers';
-import AdapterDateFns from '@mui/lab/AdapterDateFns';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { SimpleCard, Breadcrumb } from 'app/components';
 import { LoadingButton } from '@mui/lab';
-import { Field, Formik } from 'formik';
+import { Field, Formik, Form } from 'formik';
 import SelectField from './form-elements/SelectField';
 import { startOfDay, isSameDay, addDays } from 'date-fns';
-import { addDoc, collection, doc, setDoc, query, where, getDocs } from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  doc,
+  setDoc,
+  query,
+  where,
+  getDocs,
+  Timestamp,
+  updateDoc,
+  getDoc,
+} from 'firebase/firestore';
 import { db } from 'firebase';
 import { NavLink, useNavigate } from 'react-router-dom';
 import SuccessDialog from './reservations-elements/SuccessDialog';
@@ -34,7 +45,8 @@ const sleep = (time) => new Promise((acc) => setTimeout(acc, time));
 
 const initialValues = {
   serviceType: '',
-  date: '',
+  reservationTime: '',
+  date: null,
   name: '',
   surname: '',
   vinNumber: 'WVGZZZ5NZ8WE31284',
@@ -43,6 +55,7 @@ const initialValues = {
 // form field validation schema
 const validationSchema = Yup.object().shape({
   serviceType: Yup.string().required('To pole jest wymagane'),
+  reservationTime: Yup.string().required('To pole jest wymagane'),
   name: Yup.string().required('Imię jest wymagane'),
   surname: Yup.string().required('Nazwisko jest wymagane'),
   date: Yup.date().nullable().required('To pole jest wymagane'),
@@ -70,22 +83,38 @@ const ServicesReservations = () => {
   const [reservationSuccessOpenDialog, setReservationSuccessOpenDialog] = useState(false);
 
   const [datesFromDatabase, setDatesFromDatabase] = useState([]);
+  const [openTimePicker, setOpenTimePicker] = useState(false);
+
+  const [availableReservationTime, setAvailableReservationTime] = useState(false);
+
   const today = new Date();
 
   const servicesReservationsDocRef = collection(db, 'services-reservations');
-  const q = query(servicesReservationsDocRef, where('date', '>=', today));
+  const reservationsDatesDocRef = collection(db, 'reservations-dates');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const q = query(
+          reservationsDatesDocRef,
+          where('date', '>=', today),
+          where('available', '==', false)
+        );
         const querySnapshot = await getDocs(q);
         const dates = [];
+
         querySnapshot.forEach((doc) => {
-          const docDate = doc.data().date;
-          const dateObject = docDate.toDate();
-          const formattedDate = dateObject.toISOString().split('T')[0];
+          const docData = doc.data();
+          const dateObject = docData.date.toDate();
+          const options = {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+          };
+          const formattedDate = dateObject.toLocaleDateString('en-US', options);
           dates.push(formattedDate);
         });
+
         setDatesFromDatabase(dates);
       } catch (error) {
         setReservationError('Błąd serwera:', error);
@@ -104,6 +133,47 @@ const ServicesReservations = () => {
     }, 5000);
   };
 
+  const handleOpenTimePicker = async (date) => {
+    if (date == null) {
+      setOpenTimePicker(false);
+    } else {
+      try {
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const startTimestamp = Timestamp.fromDate(startOfDay);
+        const endTimestamp = Timestamp.fromDate(endOfDay);
+
+        const q = query(
+          reservationsDatesDocRef,
+          where('date', '>=', startTimestamp),
+          where('date', '<=', endTimestamp)
+        );
+
+        const querySnapshot = await getDocs(q);
+        const availableTime = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setAvailableReservationTime(availableTime);
+      } catch (error) {
+        console.log(error);
+      }
+      setOpenTimePicker(true);
+    }
+  };
+
+  function isDateNotOlderThanToday(inputDate) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const compareDate = new Date(inputDate);
+    compareDate.setHours(0, 0, 0, 0);
+
+    return compareDate >= today;
+  }
+
   const handleSubmit = async (values) => {
     setLoading(true);
     await sleep(2000);
@@ -117,6 +187,21 @@ const ServicesReservations = () => {
       setLoading(false);
       return;
     }
+    if (isSameDay(values.date, new Date())) {
+      setReservationDateError('Nie możesz zarezerwować daty dzisiejszej. Spróbuj ponownie!');
+      values.date = null;
+      setLoading(false);
+      return;
+    }
+    if (!isDateNotOlderThanToday(values.date)) {
+      setReservationDateError(
+        'Nie możesz zarezerwować daty starszej od dnia obecnego. Spróbuj ponownie!'
+      );
+      values.date = null;
+      setLoading(false);
+      return;
+    }
+    const timeKey = `${values.reservationTime}-reserved`;
     try {
       await addDoc(servicesReservationsDocRef, {
         serviceType: values.serviceType,
@@ -124,27 +209,70 @@ const ServicesReservations = () => {
         name: values.name,
         surname: values.surname,
         vinNumber: values.vinNumber,
+        time: values.reservationTime,
         uid: user.uid,
         isActive: true,
-        status: 'Oczekiwanie',
+        status: 'Weryfikacja',
       });
+      if (availableReservationTime.length === 0) {
+        const reservationConfig = {
+          '10-reserved': false,
+          '12-reserved': false,
+          '14-reserved': false,
+        };
+        reservationConfig[timeKey] = true;
+
+        await addDoc(reservationsDatesDocRef, {
+          date: values.date,
+          ...reservationConfig,
+          available: true,
+        });
+      } else {
+        const reservationsDatesUpdateDocRef = doc(
+          reservationsDatesDocRef,
+          availableReservationTime[0].id
+        );
+
+        await updateDoc(reservationsDatesUpdateDocRef, {
+          [timeKey]: true,
+        });
+
+        //Sprawdzenie czy wszystkie godziny są na true, jeśli tak zmienia się wartość "available" w bazie na false
+
+        const updatedDoc = await getDoc(reservationsDatesUpdateDocRef);
+        const updatedData = updatedDoc.data();
+
+        const allReserved = ['10-reserved', '12-reserved', '14-reserved'] //  lista  kluczy
+          .every((key) => updatedData[key] === true);
+
+        if (allReserved) {
+          // Jeśli wszystkie godziny są zarezerwowane, ustaw available na false
+          await updateDoc(reservationsDatesUpdateDocRef, {
+            available: false,
+          });
+        }
+      }
+
       setReservationSuccess(
         'Twoja rezerwacja została dodana pomyślnie. Za chwilę nastąpi przekierowanie na stronę główną.'
       );
       handleReservationSuccessOpenDialog();
     } catch (error) {
+      console.log(error);
       setReservationError('Błąd serwera:', error);
     }
   };
 
   const maxDaysFromToday = 100;
-  const minDate = new Date('2024-01-01');
+  const minDate = new Date();
+  minDate.setDate(minDate.getDate() + 1);
   const maxDate = addDays(new Date('2024-01-01'), 365);
   const disabledDates = datesFromDatabase.map((dateString) => new Date(dateString));
 
   const shouldDisableDate = (day) => {
     return disabledDates.some((disabledDay) => isSameDay(day, disabledDay));
   };
+
   return (
     <Container>
       <SuccessDialog open={reservationSuccessOpenDialog} message={reservationSuccess} />
@@ -187,8 +315,16 @@ const ServicesReservations = () => {
             initialValues={initialValues}
             validationSchema={validationSchema}
           >
-            {({ values, errors, touched, handleSubmit, handleBlur, handleChange }) => (
-              <form onSubmit={handleSubmit}>
+            {({
+              values,
+              errors,
+              setFieldValue,
+              touched,
+              handleSubmit,
+              handleBlur,
+              handleChange,
+            }) => (
+              <Form>
                 <Stack spacing={2}>
                   <Grid>
                     <SelectField
@@ -218,26 +354,77 @@ const ServicesReservations = () => {
                     />
                   </Grid>
                   <Grid>
-                    <FormControl sx={{ width: '100%' }}>
-                      <LocalizationProvider dateAdapter={AdapterDateFns}>
-                        <Field
-                          component={DatePicker}
-                          name="date"
-                          error={Boolean(errors.date && touched.date)}
-                          label="Data rezerwacji"
-                          shouldDisableDate={shouldDisableDate}
-                          minDate={minDate}
-                          maxDate={maxDate}
-                          maxDaysAhead={maxDaysFromToday}
-                        />
-                      </LocalizationProvider>
-                      {reservationDateError && (
-                        <Alert sx={{ m: 0, marginTop: 1 }} severity="error" variant="filled">
-                          {reservationDateError}
-                        </Alert>
-                      )}
+                    <FormControl fullWidth>
+                      <Field name="date">
+                        {({ field }) => (
+                          <LocalizationProvider dateAdapter={AdapterDateFns}>
+                            <DatePicker
+                              {...field}
+                              onChange={(date) => {
+                                setFieldValue('reservationTime', '');
+                                setFieldValue('date', date);
+                                handleOpenTimePicker(date);
+                              }}
+                              renderInput={(params) => (
+                                <TextField
+                                  {...params}
+                                  label="Data rezerwacji"
+                                  error={Boolean(errors.date && touched.date)}
+                                  helperText={errors.date && touched.date ? errors.date : ''}
+                                />
+                              )}
+                              value={values.date}
+                              shouldDisableDate={shouldDisableDate}
+                              minDate={minDate}
+                              maxDate={maxDate}
+                              maxDaysAhead={maxDaysFromToday}
+                            />
+                          </LocalizationProvider>
+                        )}
+                      </Field>
                     </FormControl>
+                    {reservationDateError && (
+                      <Alert sx={{ m: 0, marginTop: 1 }} severity="error" variant="filled">
+                        {reservationDateError}
+                      </Alert>
+                    )}
                   </Grid>
+                  {openTimePicker && (
+                    <Grid>
+                      <SelectField
+                        label="Wybierz godzinę"
+                        name="reservationTime"
+                        onBlur={handleBlur}
+                        options={[
+                          {
+                            label: '10:00',
+                            value: '10',
+                            disabled:
+                              availableReservationTime.length > 0
+                                ? availableReservationTime[0]['10-reserved']
+                                : false, // sprawdzanie, czy 10:00 jest zarezerwowana
+                          },
+                          {
+                            label: '12:00',
+                            value: '12',
+                            disabled:
+                              availableReservationTime.length > 0
+                                ? availableReservationTime[0]['12-reserved']
+                                : false, // sprawdzanie, czy 12:00 jest zarezerwowana
+                          },
+                          {
+                            label: '14:00',
+                            value: '14',
+                            disabled:
+                              availableReservationTime.length > 0
+                                ? availableReservationTime[0]['14-reserved']
+                                : false, // sprawdzanie, czy 14:00 jest zarezerwowana
+                          },
+                        ]}
+                      />
+                    </Grid>
+                  )}
+
                   <Grid>
                     <TextField
                       fullWidth
@@ -293,9 +480,10 @@ const ServicesReservations = () => {
                     </LoadingButton>
                   </Grid>
                 </Stack>
-              </form>
+              </Form>
             )}
           </Formik>
+
           {reservationError && (
             <Alert sx={{ m: 0, marginTop: 1 }} severity="error" variant="filled">
               {reservationError}

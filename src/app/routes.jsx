@@ -12,6 +12,8 @@ import checkRepairOrderRoutes from './views/check-repair-orders/CheckRepairOrder
 import servicesReservationsRoutes from './views/services-reservations/ServicesReservationsRoutes';
 import workerRepairOrdersRoutes from './views/worker-repair-orders/WorkerRepairOrdersRoutes';
 import workerServicesReservationsRoutes from './views/worker-services-reservations/WorkerServicesReservationsRoutes';
+import workerEventsCalendar from './views/worker-events-calendar/WorkerEventsCalendarRoutes';
+import adminUsersConfigRoutes from './views/admin-users-config/AdminUsersConfigRoutes';
 const routes = [
   // AuthGuard wrapper for protected routes
   {
@@ -30,6 +32,8 @@ const routes = [
       ...servicesReservationsRoutes,
       ...workerRepairOrdersRoutes,
       ...workerServicesReservationsRoutes,
+      ...workerEventsCalendar,
+      ...adminUsersConfigRoutes,
     ],
   },
 

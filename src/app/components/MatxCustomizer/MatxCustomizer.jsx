@@ -117,12 +117,12 @@ const MatxCustomizer = () => {
         >
           <MaxCustomaizer>
             <Controller>
-              {/* <Box display="flex">
+              <Box display="flex">
                 <Icon className="icon" color="primary">
                   settings
                 </Icon>
                 <H5 sx={{ ml: 1, fontSize: '1rem' }}>Theme Settings</H5>
-              </Box> */}
+              </Box>
 
               <IconButton onClick={tooglePanel}>
                 <Icon className="icon">close</Icon>

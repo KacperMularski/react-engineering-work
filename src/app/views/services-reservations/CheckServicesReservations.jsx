@@ -41,6 +41,7 @@ import {
   limitToLast,
   updateDoc,
   deleteDoc,
+  Timestamp,
 } from 'firebase/firestore';
 import { db } from 'firebase';
 import CloseIcon from '@mui/icons-material/Close';
@@ -102,13 +103,25 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 function CheckServicesReservations() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 599);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 599);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
   const { user } = useAuth();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(2);
   const [totalCount, setTotalCount] = useState(0);
   const [pageDocs, setPageDocs] = useState({});
 
-  const [reservationsType, setReservationsType] = useState('all');
   const [reservations, setReservations] = useState([]);
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [openDialogConf, setOpenDialogConf] = useState(false);
@@ -116,10 +129,15 @@ function CheckServicesReservations() {
   const [openErrorSnackbar, setOpenErrorSnackbar] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const [reservationsType, setReservationsType] = useState('all');
+  const [isActive, setIsActive] = useState(true);
+
   const reservationsTypeHandler = (event) => {
     setReservationsType(event.target.value);
+  };
 
-    startLoading();
+  const reservationsIsActiveHandler = (event) => {
+    setIsActive(event.target.value);
   };
 
   const startLoading = () => {
@@ -128,10 +146,6 @@ function CheckServicesReservations() {
       setLoading(false);
     }, 1000);
   };
-
-  useEffect(() => {
-    startLoading();
-  }, []);
 
   const handleChangePage = (_, newPage) => {
     setPage(newPage);
@@ -143,17 +157,6 @@ function CheckServicesReservations() {
     setRowsPerPage(newRowsPerPage);
     setPage(0);
     setPageDocs({});
-  };
-
-  const handleDeleteReservation = async () => {
-    const servicesReservationsRefDisable = doc(db, 'services-reservations', selectedReservation.id);
-    try {
-      await deleteDoc(servicesReservationsRefDisable);
-    } catch (error) {
-      setOpenErrorSnackbar(true);
-    }
-    setOpenDialogConf(false);
-    setOpenSuccessSnackbar(true);
   };
 
   const handleOpenDialogConf = (reservation) => {
@@ -173,19 +176,54 @@ function CheckServicesReservations() {
     setOpenErrorSnackbar(false);
   };
 
+  const handleDeleteReservation = async () => {
+    const servicesReservationsRefDisable = doc(db, 'services-reservations', selectedReservation.id);
+    const reservationsDatesDocRef = collection(db, 'reservations-dates');
+
+    const startOfDay = new Date(selectedReservation.data.date.toDate());
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(selectedReservation.data.date.toDate());
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const q = query(
+      reservationsDatesDocRef,
+      where('date', '>=', startOfDay),
+      where('date', '<=', endOfDay)
+    );
+
+    try {
+      await deleteDoc(servicesReservationsRefDisable);
+      const querySnapshot = await getDocs(q);
+      const reservationDates = querySnapshot.docs.map((doc) => ({
+        id: doc.id, //  ID dokumentu
+        ...doc.data(),
+      }));
+
+      const reservationsDatesUpdateDocRef = doc(reservationsDatesDocRef, reservationDates[0].id);
+      const timeKey = `${selectedReservation.data.time}-reserved`;
+      await updateDoc(reservationsDatesUpdateDocRef, {
+        [timeKey]: false,
+        available: true,
+      });
+    } catch (error) {
+      setOpenErrorSnackbar(true);
+    }
+    setOpenDialogConf(false);
+    setOpenSuccessSnackbar(true);
+  };
+
   function createQueryConditions(reservationsType) {
     const uid = user.uid;
     let conditions = [];
 
     if (reservationsType !== 'all') {
-      conditions.push(
-        where('isActive', '==', true),
-        where('serviceType', '==', reservationsType),
-        where('uid', '==', uid)
-      );
-    } else {
-      conditions.push(where('isActive', '==', true), where('uid', '==', uid));
+      conditions.push(where('serviceType', '==', reservationsType));
     }
+    if (isActive !== 'all') {
+      conditions.push(where('isActive', '==', isActive));
+    }
+    conditions.push(where('uid', '==', uid));
+
     return conditions;
   }
 
@@ -209,13 +247,18 @@ function CheckServicesReservations() {
     try {
       let q;
       if (page === 0) {
-        q = query(servicesReservationsRef, ...conditions, orderBy('date'), limit(rowsPerPage));
+        q = query(
+          servicesReservationsRef,
+          ...conditions,
+          orderBy('date', 'desc'),
+          limit(rowsPerPage)
+        );
       } else {
         const startAtDoc = pageDocs[page] || null;
         q = query(
           servicesReservationsRef,
           ...conditions,
-          orderBy('date'),
+          orderBy('date', 'desc'),
           startAfter(startAtDoc),
           limit(rowsPerPage)
         );
@@ -229,7 +272,7 @@ function CheckServicesReservations() {
 
       if (querySnapshot.docs.length > 0) {
         const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-        setPageDocs((prev) => ({ ...prev, [page + 1]: lastDoc })); // Store the last document of the current page for the next page
+        setPageDocs((prev) => ({ ...prev, [page + 1]: lastDoc }));
       }
     } catch (error) {
       setOpenErrorSnackbar(true);
@@ -238,9 +281,10 @@ function CheckServicesReservations() {
   };
 
   useEffect(() => {
+    startLoading();
     fetchTotalCount();
     fetchData();
-  }, [page, rowsPerPage, reservationsType]);
+  }, [page, rowsPerPage, reservationsType, isActive]);
 
   return (
     <Container>
@@ -252,8 +296,9 @@ function CheckServicesReservations() {
           ]}
         />
       </Box>
-      <Stack spacing={2} sx={{ margin: 2 }}>
-        <SimpleCard title="Rezerwacje">
+
+      <SimpleCard title="Rezerwacje">
+        <Stack spacing={2} sx={{ margin: 2 }}>
           <Grid>
             <FormControl fullWidth>
               <InputLabel id="select-label-1">Rodzaj rezerwacji</InputLabel>
@@ -283,24 +328,46 @@ function CheckServicesReservations() {
               </Select>
             </FormControl>
           </Grid>
-        </SimpleCard>
-      </Stack>
-      <Stack spacing={2} sx={{ margin: 2 }}>
+          <Grid>
+            <FormControl fullWidth>
+              <InputLabel id="select-label-2">Rezerwacje aktywne/nieaktywne</InputLabel>
+              <Select
+                labelId="select-label-2"
+                id="select-label-2"
+                value={isActive}
+                label="Rezerwacje aktywne/nieaktywne"
+                onChange={reservationsIsActiveHandler}
+                defaultValue={true}
+              >
+                <MenuItem value={'all'}>Wszystkie</MenuItem>
+                <MenuItem value={true}>Aktywne</MenuItem>
+                <MenuItem value={false}>Nieaktywne</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+        </Stack>
+      </SimpleCard>
+
+      <Stack spacing={2} sx={{ marginTop: 1 }}>
         <SimpleCard>
           {loading ? (
             <Box display="flex" justifyContent="center" alignItems="center" height={200}>
               <CircularProgress />
             </Box>
           ) : (
-            <Box>
-              <StyledTable>
+            <Box overflow="auto">
+              <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell align="left">Rodzaj rezerwacji</TableCell>
-                    <TableCell align="center">Wybrana data</TableCell>
-                    <TableCell align="center">Imie</TableCell>
+                    <TableCell align="left">{isMobile ? 'Rd.rez.' : 'Rodzaj rezerwacji'}</TableCell>
+                    <TableCell align="center">Termin</TableCell>
+                    <TableCell align="center" sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                      Imie
+                    </TableCell>
                     <TableCell align="center">Nazwisko</TableCell>
-                    <TableCell align="center">Status</TableCell>
+                    <TableCell align="center" sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                      Status
+                    </TableCell>
                     <TableCell align="center">Anuluj</TableCell>
                   </TableRow>
                 </TableHead>
@@ -312,13 +379,30 @@ function CheckServicesReservations() {
                         <TableCell align="center">
                           {reservation.data.date
                             ? reservation.data.date.toDate().toLocaleDateString()
-                            : '-'}
+                            : '-'}{' '}
+                          {reservation.data.time}:00
                         </TableCell>
-                        <TableCell align="center">{reservation.data.name}</TableCell>
+                        <TableCell
+                          align="center"
+                          sx={{ display: { xs: 'none', md: 'table-cell' } }}
+                        >
+                          {reservation.data.name}
+                        </TableCell>
                         <TableCell align="center">{reservation.data.surname}</TableCell>
-                        <TableCell align="center">
-                          {reservation.data.status === 'Oczekiwanie' ? (
+                        <TableCell
+                          align="center"
+                          sx={{ display: { xs: 'none', md: 'table-cell' } }}
+                        >
+                          {reservation.data.status === 'Weryfikacja' ? (
                             <Alert variant="filled" severity="info">
+                              {reservation.data.status}
+                            </Alert>
+                          ) : reservation.data.status === 'Anulowano' ? (
+                            <Alert variant="filled" severity="error">
+                              {reservation.data.status}
+                            </Alert>
+                          ) : reservation.data.status === 'Zatwierdzono' ? (
+                            <Alert variant="filled" severity="warning">
                               {reservation.data.status}
                             </Alert>
                           ) : (
@@ -335,7 +419,7 @@ function CheckServicesReservations() {
                       </TableRow>
                     ))}
                 </TableBody>
-              </StyledTable>
+              </Table>
 
               <TablePagination
                 sx={{ px: 2 }}

@@ -111,6 +111,20 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 function WorkerRepairOrders() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 599);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 599);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   const [status, setStatus] = useState('');
   const [surname, setSurname] = useState('');
   const [faultType, setFaultType] = useState('');
@@ -202,7 +216,7 @@ function WorkerRepairOrders() {
     await sleep(2000);
     const repairOrderEditRef = doc(db, 'repair-orders', selectedOrder.id);
     const notificationsRef = collection(db, 'notifications');
-    const statusNotificationType = 'Zmiana statusu';
+    const statusNotificationType = 'Zmiana statusu zlecenia';
     const notificationContent =
       'Status twojej rezerwacji został zmieniony z ' +
       selectedOrder.data.status +
@@ -414,15 +428,27 @@ function WorkerRepairOrders() {
                 </Box>
               ) : (
                 <Box overflow="auto">
-                  <StyledTable>
+                  <Table>
                     <TableHead>
                       <TableRow>
-                        <TableCell align="left">Rodzaj usterki</TableCell>
+                        <TableCell align="left">
+                          {isMobile ? 'Rd.ust.' : 'Rodzaj usterki'}
+                        </TableCell>
                         <TableCell align="center">Marka</TableCell>
                         <TableCell align="center">Model</TableCell>
                         <TableCell align="center">Nazwisko</TableCell>
-                        <TableCell align="center">Data</TableCell>
-                        <TableCell align="center">Status</TableCell>
+                        <TableCell
+                          align="center"
+                          sx={{ display: { xs: 'none', md: 'table-cell' } }}
+                        >
+                          Data
+                        </TableCell>
+                        <TableCell
+                          align="center"
+                          sx={{ display: { xs: 'none', md: 'table-cell' } }}
+                        >
+                          Status
+                        </TableCell>
                         <TableCell align="center">Edytuj</TableCell>
                       </TableRow>
                     </TableHead>
@@ -434,12 +460,18 @@ function WorkerRepairOrders() {
                             <TableCell align="center">{order.data.carBrand}</TableCell>
                             <TableCell align="center">{order.data.carModel}</TableCell>
                             <TableCell align="center">{order.data.surname}</TableCell>
-                            <TableCell align="center">
+                            <TableCell
+                              align="center"
+                              sx={{ display: { xs: 'none', md: 'table-cell' } }}
+                            >
                               {order.data.dateTime
                                 ? order.data.dateTime.toDate().toLocaleString()
                                 : '-'}
                             </TableCell>
-                            <TableCell align="center">
+                            <TableCell
+                              align="center"
+                              sx={{ display: { xs: 'none', md: 'table-cell' } }}
+                            >
                               {order.data.status === 'Weryfikacja' ? (
                                 <Alert variant="filled" severity="info">
                                   {order.data.status}
@@ -466,7 +498,7 @@ function WorkerRepairOrders() {
                           </TableRow>
                         ))}
                     </TableBody>
-                  </StyledTable>
+                  </Table>
 
                   <TablePagination
                     sx={{ px: 2 }}
