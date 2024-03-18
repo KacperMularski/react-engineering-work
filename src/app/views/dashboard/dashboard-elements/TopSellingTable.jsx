@@ -3,8 +3,6 @@ import {
   Box,
   Card,
   FormControl,
-  Icon,
-  IconButton,
   MenuItem,
   Select,
   styled,
@@ -97,14 +95,11 @@ const TopSellingTable = () => {
               <TableCell sx={{ px: 3 }} colSpan={4}>
                 Nazwa
               </TableCell>
-              <TableCell sx={{ px: 5 }} colSpan={2}>
+              <TableCell sx={{ px: 3 }} colSpan={2}>
                 Cena
               </TableCell>
               <TableCell sx={{ px: 0 }} colSpan={2}>
                 Dostępność
-              </TableCell>
-              <TableCell sx={{ px: 0 }} colSpan={1}>
-                Wybierz
               </TableCell>
             </TableRow>
           </TableHead>
@@ -119,7 +114,7 @@ const TopSellingTable = () => {
                   </Box>
                 </TableCell>
 
-                <TableCell align="left" colSpan={2} sx={{ px: 5, textTransform: 'capitalize' }}>
+                <TableCell align="left" colSpan={2} sx={{ px: 3, textTransform: 'capitalize' }}>
                   {service.price}
                 </TableCell>
 
@@ -134,12 +129,6 @@ const TopSellingTable = () => {
                     <Small bgcolor={bgError}>Tydzień</Small>
                   )}
                   {!service.available && <Small bgcolor={bgError}>Brak</Small>}
-                </TableCell>
-
-                <TableCell sx={{ px: 0 }} colSpan={1}>
-                  <IconButton>
-                    <Icon color="primary">arrow_forward</Icon>
-                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}

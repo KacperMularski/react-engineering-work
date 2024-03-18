@@ -14,13 +14,7 @@ import {
   Icon,
   TablePagination,
   CircularProgress,
-  Slide,
-  DialogContentText,
-  DialogActions,
-  Button,
   Snackbar,
-  Checkbox,
-  FormControlLabel,
   FormControl,
   InputLabel,
   Select,
@@ -39,17 +33,13 @@ import {
   addDoc,
   collection,
   doc,
-  setDoc,
   query,
   where,
   getDocs,
   orderBy,
   limit,
   startAfter,
-  endBefore,
-  limitToLast,
   updateDoc,
-  deleteDoc,
 } from 'firebase/firestore';
 import { db } from 'firebase';
 import Typography from '@mui/material/Typography';
@@ -67,16 +57,6 @@ const Container = styled('div')(({ theme }) => ({
   },
 }));
 
-const StyledTable = styled(Table)(() => ({
-  whiteSpace: 'pre',
-  '& thead': {
-    '& tr': { '& th': { paddingLeft: 0, paddingRight: 0 } },
-  },
-  '& tbody': {
-    '& tr': { '& td': { paddingLeft: 0, textTransform: 'capitalize' } },
-  },
-}));
-
 const DialogTitleRoot = styled(MuiDialogTitle)(({ theme }) => ({
   margin: 0,
   padding: theme.spacing(2),
@@ -91,8 +71,8 @@ const DialogTitleRoot = styled(MuiDialogTitle)(({ theme }) => ({
 const DialogTitle = (props) => {
   const { children, onClose } = props;
   return (
-    <DialogTitleRoot disableTypography>
-      <Typography variant="h6">{children}</Typography>
+    <DialogTitleRoot>
+      {children}
       {onClose ? (
         <IconButton aria-label="Close" className="closeButton" onClick={onClose}>
           <CloseIcon />
@@ -105,10 +85,6 @@ const DialogTitle = (props) => {
 const DialogContent = styled(MuiDialogContent)(({ theme }) => ({
   '&.root': { padding: theme.spacing(2) },
 }));
-
-const Transition = React.forwardRef(function Transition(props, ref) {
-  return <Slide direction="up" ref={ref} {...props} />;
-});
 
 function WorkerRepairOrders() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 599);
@@ -124,7 +100,7 @@ function WorkerRepairOrders() {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
-
+  //Filtrowanie wyników
   const [status, setStatus] = useState('');
   const [surname, setSurname] = useState('');
   const [faultType, setFaultType] = useState('');
@@ -140,10 +116,10 @@ function WorkerRepairOrders() {
   const [errorSnackbarMessage, setErrorSnackbarMessage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
-
+  //Wybrane zlecenie
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
-
+  //Edycja zlecenia
   const [editOrderStatus, setEditOrderStatus] = useState('');
   const [clientOrderNote, setClientOrderNote] = useState('');
 
@@ -158,17 +134,6 @@ function WorkerRepairOrders() {
   const handleChangeFaultType = (event) => {
     setFaultType(event.target.value);
   };
-
-  const startLoading = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-  };
-
-  useEffect(() => {
-    startLoading();
-  }, []);
 
   const handleChangePage = (_, newPage) => {
     setPage(newPage);
@@ -243,9 +208,10 @@ function WorkerRepairOrders() {
         content: notificationContent,
         dateTime: currentDate,
       });
-
+      setOpenDialog(false);
       setOpenSuccessSnackbar(true);
     } catch (error) {
+      setOpenDialog(false);
       setErrorSnackbarMessage('Błąd serwera: ', error);
       setOpenErrorSnackbar(true);
     }
@@ -307,7 +273,7 @@ function WorkerRepairOrders() {
           limit(rowsPerPage)
         );
       } else {
-        const startAtDoc = pageDocs[page] || null; // Adjust to use the current page
+        const startAtDoc = pageDocs[page] || null;
         q = query(
           repairOrdersRef,
           ...conditions,
@@ -327,17 +293,28 @@ function WorkerRepairOrders() {
 
       if (querySnapshot.docs.length > 0) {
         const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-        setPageDocs((prev) => ({ ...prev, [page + 1]: lastDoc })); // Store the last document of the current page for the next page
+        setPageDocs((prev) => ({ ...prev, [page + 1]: lastDoc }));
       }
     } catch (error) {
       console.log('Błąd:', error);
     }
   };
 
+  const startLoading = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+  };
+
   useEffect(() => {
     startLoading();
     fetchTotalCount();
     fetchData();
+    return () => {
+      setLoading(false);
+      setTimeout(0);
+    };
   }, [page, rowsPerPage, status, surname, faultType]);
 
   return (
@@ -596,7 +573,7 @@ function WorkerRepairOrders() {
                   <Grid container spacing={3}>
                     {Array.isArray(selectedOrder.data.computedIssues) ? (
                       selectedOrder.data.computedIssues.map((item, index) => (
-                        <Grid item xs={12}>
+                        <Grid item xs={12} key={index}>
                           {index + 1} : <b>{item}</b>
                         </Grid>
                       ))

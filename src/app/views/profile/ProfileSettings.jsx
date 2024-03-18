@@ -1,5 +1,5 @@
 import { LoadingButton } from '@mui/lab';
-import { TextField, Alert, Stack, Grid, Avatar, Button, Paper } from '@mui/material';
+import { TextField, Alert, Stack, Grid, Avatar, Button, Paper, Typography } from '@mui/material';
 import { Box, styled } from '@mui/system';
 import { SimpleCard } from 'app/components';
 import useAuth from 'app/hooks/useAuth';
@@ -7,13 +7,12 @@ import { db } from 'firebase';
 import {
   getStorage,
   ref,
-  uploadBytes,
   getDownloadURL,
   uploadBytesResumable,
   deleteObject,
 } from 'firebase/storage';
 import { Formik } from 'formik';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import * as Yup from 'yup';
 
@@ -22,18 +21,6 @@ import DownloadingIcon from '@mui/icons-material/Downloading';
 
 const FlexBox = styled(Box)(() => ({ display: 'flex', alignItems: 'center' }));
 
-const Item = styled(Paper)(({ theme }) => ({
-  backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
-  ...theme.typography.body2,
-  padding: theme.spacing(1),
-  textAlign: 'center',
-  color: theme.palette.text.secondary,
-  flexGrow: 1,
-}));
-
-const JustifyBox = styled(FlexBox)(() => ({ justifyContent: 'center' }));
-
-// inital login credentials
 const initialValues = {
   password: '',
   passwordRepeat: '',
@@ -71,7 +58,7 @@ const ProfileSettings = () => {
     setChangePasswordSuccess(null);
     try {
       updatePasswordForCurrentUser(values.password);
-      setChangePasswordSuccess('Zmiana hasła udała się pomyślnie!');
+      setChangePasswordSuccess('Hasło zostało zmienione!');
       setLoading(false);
     } catch (registerError) {
       setChangePasswordError('Wystąpił błąd podczas zmiany hasła!');
@@ -100,7 +87,6 @@ const ProfileSettings = () => {
     const storage = getStorage();
     const [filename, extension] = avatar.name.split('.');
     const storageRef = ref(storage, `avatars/${user.uid}.${extension}`);
-    console.log(filename);
     const uploadTask = uploadBytesResumable(storageRef, avatar);
     const userData = await getDoc(userRef);
     if (userData.exists()) {
@@ -120,7 +106,6 @@ const ProfileSettings = () => {
       // Używamy setDoc do ustawienia wartości, w tym przypadku 'avatarURL'
       await setDoc(userRef, { avatarURL: url }, { merge: true });
       setAvatarURL(url);
-      console.log('Awatar został pomyślnie przesłany i zapisany w Firestore.');
     } catch (error) {
       console.error('Błąd podczas przesyłania awatara:', error.message);
     }
@@ -196,7 +181,7 @@ const ProfileSettings = () => {
       </SimpleCard>
       <SimpleCard title="Ustawianie awatara">
         <Grid container spacing={2} justifyContent="center">
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={12}>
             <input
               type="file"
               ref={(input) => setFileInput(input)}
@@ -215,7 +200,7 @@ const ProfileSettings = () => {
             {!avatar && 'Nie wybrano pliku'}
             {avatar && avatar.name}
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={12}>
             <Button
               variant="contained"
               component="label"
@@ -226,19 +211,16 @@ const ProfileSettings = () => {
             </Button>
             <progress value={progress} max="100" />
           </Grid>
+
           <Grid
+            container
             item
-            xs={12}
-            md={4}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            sx={{ xs: 12, md: 12 }}
+            alignItems="center"
+            justifyContent="flex-start"
           >
-            Podgląd awatara
-            <Avatar src={avatarURL} alt="Awatar" sx={{ mx: 'auto', my: 2 }} />
+            <Avatar src={avatarURL} alt="Awatar" />
+            <Typography sx={{ marginLeft: '16px' }}>Podgląd awatara</Typography>
           </Grid>
         </Grid>
       </SimpleCard>

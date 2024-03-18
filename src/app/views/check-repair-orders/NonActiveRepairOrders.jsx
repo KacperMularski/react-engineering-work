@@ -1,15 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  collection,
-  orderBy,
-  query,
-  getDocs,
-  startAfter,
-  endBefore,
-  limit,
-  limitToLast,
-  where,
-} from 'firebase/firestore';
+import { collection, orderBy, query, getDocs, startAfter, limit, where } from 'firebase/firestore';
 import { db } from 'firebase';
 import Dialog from '@mui/material/Dialog';
 import {
@@ -23,9 +13,7 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  DialogContentText,
   Grid,
-  Slide,
   CircularProgress,
 } from '@mui/material';
 import useAuth from 'app/hooks/useAuth';
@@ -33,7 +21,6 @@ import { Breadcrumb, SimpleCard } from 'app/components';
 import MuiDialogContent from '@mui/material/DialogContent';
 import MuiDialogTitle from '@mui/material/DialogTitle';
 import CloseIcon from '@mui/icons-material/Close';
-import Typography from '@mui/material/Typography';
 
 const StyledTable = styled(Table)(() => ({
   whiteSpace: 'pre',
@@ -68,8 +55,8 @@ const DialogTitleRoot = styled(MuiDialogTitle)(({ theme }) => ({
 const DialogTitle = (props) => {
   const { children, onClose } = props;
   return (
-    <DialogTitleRoot disableTypography>
-      <Typography variant="h6">{children}</Typography>
+    <DialogTitleRoot>
+      {children}
       {onClose ? (
         <IconButton aria-label="Close" className="closeButton" onClick={onClose}>
           <CloseIcon />
@@ -99,7 +86,7 @@ function NonActiveRepairOrders() {
   }, []);
   const { user } = useAuth();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(2);
+  const [rowsPerPage, setRowsPerPage] = useState(3);
   const [orders, setOrders] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [pageDocs, setPageDocs] = useState({});
@@ -119,6 +106,10 @@ function NonActiveRepairOrders() {
 
   useEffect(() => {
     startLoading();
+    return () => {
+      setLoading(false);
+      setTimeout(0);
+    };
   }, []);
 
   const handleChangePage = (_, newPage) => {
@@ -149,7 +140,7 @@ function NonActiveRepairOrders() {
       const querySnapshot = await getDocs(q);
       setTotalCount(querySnapshot.size);
     } catch (error) {
-      console.error('Error fetching total count:', error);
+      console.error('Błąd wczytywania liczby dokumentów: ', error);
     }
   };
 
@@ -186,10 +177,10 @@ function NonActiveRepairOrders() {
 
       if (querySnapshot.docs.length > 0) {
         const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-        setPageDocs((prev) => ({ ...prev, [page + 1]: lastDoc })); // Store the last document of the current page for the next page
+        setPageDocs((prev) => ({ ...prev, [page + 1]: lastDoc })); // Ostatni dokument
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Błąd pobierania danych: ', error);
     }
   };
 

@@ -9,7 +9,7 @@ const servicesReservationsRoutes = [
   {
     path: '/servicesReservations',
     element: <ServicesReservations />,
-    auth: authRoles.user,
+    auth: authRoles.all,
   },
   {
     path: '/checkServicesReservations',

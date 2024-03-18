@@ -38,7 +38,7 @@ const NotFound = () => {
           sx={{ textTransform: 'capitalize' }}
           onClick={() => navigate(-1)}
         >
-          Go Back
+          Powrót
         </Button>
       </JustifyBox>
     </NotFoundRoot>

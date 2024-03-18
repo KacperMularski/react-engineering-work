@@ -3,13 +3,14 @@ import { navigationsAdmin } from 'app/navigations/navigationsAdmin';
 import { navigationsWorker } from 'app/navigations/navigationsWorker';
 import { SET_USER_NAVIGATION } from '../actions/NavigationAction';
 
+//ładowanie roli z sesji przeglądarki
 const userRole = localStorage.getItem('userRole');
 const initialState =
   userRole === 'WORKER'
     ? [...navigationsWorker]
     : userRole === 'ADMIN'
     ? [...navigationsAdmin]
-    : [...navigationsUser]; // Dla innych ról, np. WORKER
+    : [...navigationsUser];
 
 const NavigationReducer = function (state = initialState, action) {
   switch (action.type) {

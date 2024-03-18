@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Button,
-  Card,
-  CardContent,
-  CircularProgress,
   Grid,
   FormControl,
   Stack,
@@ -21,12 +17,11 @@ import { SimpleCard, Breadcrumb } from 'app/components';
 import { LoadingButton } from '@mui/lab';
 import { Field, Formik, Form } from 'formik';
 import SelectField from './form-elements/SelectField';
-import { startOfDay, isSameDay, addDays } from 'date-fns';
+import { isSameDay, addDays } from 'date-fns';
 import {
   addDoc,
   collection,
   doc,
-  setDoc,
   query,
   where,
   getDocs,
@@ -35,7 +30,7 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { db } from 'firebase';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import SuccessDialog from './reservations-elements/SuccessDialog';
 import useAuth from 'app/hooks/useAuth';
 
@@ -181,15 +176,24 @@ const ServicesReservations = () => {
     const isEnteredDateDisabled = disabledDates.some((disabledDate) =>
       isSameDay(values.date, disabledDate)
     );
+    if (values.date.getDay() === 0) {
+      setReservationDateError('Nie możesz wybrać niedzieli. Spróbuj ponownie!');
+      values.date = null;
+      setOpenTimePicker(false);
+      setLoading(false);
+      return;
+    }
     if (isEnteredDateDisabled) {
       setReservationDateError('Wprowadzona data została już zarezerwowana. Spróbuj ponownie!');
       values.date = null;
+      setOpenTimePicker(false);
       setLoading(false);
       return;
     }
     if (isSameDay(values.date, new Date())) {
       setReservationDateError('Nie możesz zarezerwować daty dzisiejszej. Spróbuj ponownie!');
       values.date = null;
+      setOpenTimePicker(false);
       setLoading(false);
       return;
     }
@@ -198,6 +202,7 @@ const ServicesReservations = () => {
         'Nie możesz zarezerwować daty starszej od dnia obecnego. Spróbuj ponownie!'
       );
       values.date = null;
+      setOpenTimePicker(false);
       setLoading(false);
       return;
     }
@@ -270,7 +275,12 @@ const ServicesReservations = () => {
   const disabledDates = datesFromDatabase.map((dateString) => new Date(dateString));
 
   const shouldDisableDate = (day) => {
-    return disabledDates.some((disabledDay) => isSameDay(day, disabledDay));
+    // Sprawdź, czy wybrana data to niedziela
+    if (day.getDay() === 0) {
+      return true;
+    }
+    const isDisabledDate = disabledDates.some((disabledDay) => isSameDay(day, disabledDay));
+    return isDisabledDate;
   };
 
   return (

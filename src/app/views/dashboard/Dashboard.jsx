@@ -23,14 +23,6 @@ const SubTitle = styled('span')(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-const H4 = styled('h4')(({ theme }) => ({
-  fontSize: '1rem',
-  fontWeight: '500',
-  marginBottom: '16px',
-
-  color: theme.palette.text.secondary,
-}));
-
 const Dashboard = () => {
   const { palette } = useTheme();
 

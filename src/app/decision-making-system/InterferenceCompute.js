@@ -1,9 +1,13 @@
-import knowledgeBaseLoad from './knowledgeBase.json';
-import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
+import { addDoc, collection } from 'firebase/firestore';
 import { db } from 'firebase';
+import loadKnowledgeBase from './utils/loadKnowledgeBase';
 
 const compute = async (formData, user) => {
-  let knowledgeBase = knowledgeBaseLoad;
+  const knowledgeBase = await loadKnowledgeBase();
+  if (!knowledgeBase) {
+    console.log('Błąd wczytywania bazy wiedzy!');
+    return;
+  }
   const uid = user.uid;
   const form = {
     fuelType: [formData.fuelType],
@@ -27,19 +31,8 @@ const compute = async (formData, user) => {
     engineFailure_warningLightsCheckEngine: [formData.engineFailure_warningLightsCheckEngine],
     engineFailure_warningLightsEngineCoolant: [formData.engineFailure_warningLightsEngineCoolant],
     engineFailure_warningLightsEngineOil: [formData.engineFailure_warningLightsEngineOil],
+    engineFailure_warningLightsBattery: [formData.engineFailure_warningLightsBattery],
   };
-
-  // switch (formData.faultType) {
-  //   case 'engine':
-  //     return (knowledgeBase = knowledgeBaseLoad);
-  //   case 'brakeSystem':
-  //     return (knowledgeBase = knowledgeBaseLoad);
-  //   case 'airConditioning':
-  //     return (knowledgeBase = knowledgeBaseLoad);
-
-  //   default:
-  //     return console.log('Błąd wczytywania bazy wiedzy');
-  // }
 
   const generatedCombinations = generateCombinations(form);
   let isMatchingIssues;
@@ -70,10 +63,8 @@ const compute = async (formData, user) => {
       status: 'Weryfikacja',
       isActive: true,
     });
-
-    console.log('Document added successfully!');
   } catch (error) {
-    console.error('Error adding document:', error);
+    console.error('Błąd:', error);
   }
 
   function generateCombinations(categories) {

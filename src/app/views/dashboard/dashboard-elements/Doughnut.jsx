@@ -55,7 +55,7 @@ const DoughnutChart = ({ height, color = [] }) => {
         label: {
           normal: {
             show: false,
-            position: 'center', // shows the description data to center, turn off to show in right side
+            position: 'center',
             textStyle: {
               color: theme.palette.text.secondary,
               fontSize: 13,
@@ -68,7 +68,6 @@ const DoughnutChart = ({ height, color = [] }) => {
             textStyle: {
               fontSize: '14',
               fontWeight: 'normal',
-              // color: "rgba(15, 21, 77, 1)"
             },
             formatter: '{b} \n{c} ({d}%)',
           },

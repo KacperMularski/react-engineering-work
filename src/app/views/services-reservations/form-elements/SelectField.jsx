@@ -1,7 +1,6 @@
-// Komponent SelectField.jsx
 import React, { useState } from 'react';
 import { Field, useFormikContext, ErrorMessage } from 'formik';
-import { Select, MenuItem, InputLabel, FormControl, Box, FormHelperText } from '@mui/material';
+import { Select, MenuItem, InputLabel, FormControl, FormHelperText } from '@mui/material';
 
 const SelectField = ({ name, label, options, onChange }) => {
   const { setFieldValue, touched, errors, values } = useFormikContext();
@@ -12,7 +11,6 @@ const SelectField = ({ name, label, options, onChange }) => {
     setValue(selectedValue);
     setFieldValue(name, selectedValue);
 
-    // Dodaj wywołanie funkcji onChange, jeśli została przekazana
     if (onChange) {
       onChange(selectedValue);
     }

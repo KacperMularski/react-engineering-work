@@ -23,12 +23,6 @@ const AuthGuard = ({ children }) => {
   const hasPermission = userHasPermission(pathname, user, userRole, routes);
   let authenticated = isAuthenticated && hasPermission;
 
-  // // IF YOU NEED ROLE BASED AUTHENTICATION,
-  // // UNCOMMENT ABOVE LINES
-  // // AND COMMENT OUT BELOW authenticated VARIABLE
-
-  // let authenticated = isAuthenticated;
-
   return (
     <>
       {authenticated ? (

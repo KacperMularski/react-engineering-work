@@ -3,7 +3,7 @@ const Layout1Settings = {
     show: true,
     mode: 'full', // full, close, compact, mobile,
     theme: 'slateDark1', // View all valid theme colors inside MatxTheme/themeColors.js
-    bgImgURL: '/assets/images/sidebar/sidebar-background.jpg',
+    bgimgurl: '/assets/images/sidebar/sidebar-background.jpg',
   },
   topbar: {
     show: true,

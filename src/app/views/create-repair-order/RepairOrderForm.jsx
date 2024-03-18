@@ -2,28 +2,17 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
-  Card,
-  CardContent,
   CircularProgress,
   Grid,
   Step,
   StepLabel,
   Stepper,
-  Autocomplete,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl,
-  TextareaAutosize,
   Stack,
-  Switch,
-  Slider,
-  Alert,
 } from '@mui/material';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { Field, Form, Formik, ErrorMessage } from 'formik';
+import { useNavigate } from 'react-router-dom';
+import { Field, Form, Formik } from 'formik';
 import { CheckboxWithLabel, TextField } from 'formik-material-ui';
-import { mixed, number, object } from 'yup';
+import { object } from 'yup';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import * as Yup from 'yup';
 import useAuth from 'app/hooks/useAuth';
@@ -41,6 +30,7 @@ import engineOilIcon from './form-elements/icons/engine-oil-icon.png';
 import engineCoolantIcon from './form-elements/icons/engine-coolant-icon.png';
 import batteryIcon from './form-elements/icons/battery-icon.png';
 import compute from 'app/decision-making-system/InterferenceCompute';
+
 const sleep = (time) => new Promise((acc) => setTimeout(acc, time));
 
 function RepairOrder() {
@@ -58,9 +48,11 @@ function RepairOrder() {
   const dataBrandsRef = ref(db, 'brands');
 
   useEffect(() => {
+    let isMounted = true;
+
     get(dataModelsRef)
       .then((snapshot) => {
-        if (snapshot.exists()) {
+        if (isMounted && snapshot.exists()) {
           const data = snapshot.val();
           setCarModels(data);
         } else {
@@ -73,7 +65,7 @@ function RepairOrder() {
 
     get(dataBrandsRef)
       .then((snapshot) => {
-        if (snapshot.exists()) {
+        if (isMounted && snapshot.exists()) {
           const data = snapshot.val();
           setCarBrands(data);
         } else {
@@ -83,6 +75,10 @@ function RepairOrder() {
       .catch((error) => {
         console.error('Błąd pobierania danych:', error);
       });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleFaultTypeChange = (value) => {
@@ -127,11 +123,13 @@ function RepairOrder() {
       }}
       onSubmit={async (values) => {
         await sleep(3000);
+        sleep(0);
         await compute(values, user);
         navigate('/activeRepairOrders');
       }}
     >
       <FormikStep
+        label="Wybierz rodzaj usterki"
         validationSchema={object({
           faultType: Yup.string().required('To pole jest wymagane'),
           description: Yup.string().required('To pole jest wymagane'),
@@ -159,7 +157,6 @@ function RepairOrder() {
                 <SimpleCard title="Objawy ogólne">
                   <Box paddingBottom={2}>
                     <Field
-                      fullWidth
                       type="checkbox"
                       name="engineFailure_unevenWork"
                       component={CheckboxWithLabel}
@@ -168,7 +165,6 @@ function RepairOrder() {
                   </Box>
                   <Box paddingBottom={2}>
                     <Field
-                      fullWidth
                       type="checkbox"
                       name="engineFailure_whenAccelerating"
                       component={CheckboxWithLabel}
@@ -177,7 +173,6 @@ function RepairOrder() {
                   </Box>
                   <Box paddingBottom={2}>
                     <Field
-                      fullWidth
                       type="checkbox"
                       name="engineFailure_increasedFuelConsumption"
                       component={CheckboxWithLabel}
@@ -186,7 +181,6 @@ function RepairOrder() {
                   </Box>
                   <Box paddingBottom={2}>
                     <Field
-                      fullWidth
                       type="checkbox"
                       name="engineFailure_noisyWork"
                       component={CheckboxWithLabel}
@@ -195,7 +189,6 @@ function RepairOrder() {
                   </Box>
                   <Box paddingBottom={2}>
                     <Field
-                      fullWidth
                       type="checkbox"
                       name="engineFailure_heavyShiftingGears"
                       component={CheckboxWithLabel}
@@ -204,7 +197,6 @@ function RepairOrder() {
                   </Box>
                   <Box paddingBottom={2}>
                     <Field
-                      fullWidth
                       type="checkbox"
                       name="engineFailure_lossOfEnginePower"
                       component={CheckboxWithLabel}
@@ -213,7 +205,6 @@ function RepairOrder() {
                   </Box>
                   <Box paddingBottom={2}>
                     <Field
-                      fullWidth
                       type="checkbox"
                       name="engineFailure_noises"
                       component={CheckboxWithLabel}
@@ -222,7 +213,6 @@ function RepairOrder() {
                   </Box>
                   <Box paddingBottom={2}>
                     <Field
-                      fullWidth
                       type="checkbox"
                       name="engineFailure_vibrationsWhileDriving"
                       component={CheckboxWithLabel}
@@ -231,7 +221,6 @@ function RepairOrder() {
                   </Box>
                   <Box paddingBottom={2}>
                     <Field
-                      fullWidth
                       type="checkbox"
                       name="engineFailure_suddenEngineStop"
                       component={CheckboxWithLabel}
@@ -272,39 +261,29 @@ function RepairOrder() {
                 <SimpleCard title="Kontrolki awaryjne (wybierz jeśli występują):">
                   <Box paddingBottom={2}>
                     <img src={glowPlugIcon} />
-                    <SwitchField
-                      name="engineFailure_warningLightsGlowPlug" // Ustaw nazwę pola
-                    />
+                    <SwitchField name="engineFailure_warningLightsGlowPlug" />
                   </Box>
                   <Box paddingBottom={2}>
                     <img src={checkEngineIcon} />
-                    <SwitchField
-                      name="engineFailure_warningLightsCheckEngine" // Ustaw nazwę pola
-                    />
+                    <SwitchField name="engineFailure_warningLightsCheckEngine" />
                   </Box>
                   <Box paddingBottom={2}>
                     <img src={engineCoolantIcon} />
-                    <SwitchField
-                      name="engineFailure_warningLightsEngineCoolant" // Ustaw nazwę pola
-                    />
+                    <SwitchField name="engineFailure_warningLightsEngineCoolant" />
                   </Box>
                   <Box paddingBottom={2}>
                     <img src={engineOilIcon} />
-                    <SwitchField
-                      name="engineFailure_warningLightsEngineOil" // Ustaw nazwę pola
-                    />
+                    <SwitchField name="engineFailure_warningLightsEngineOil" />
                   </Box>
                   <Box paddingBottom={2}>
                     <img src={batteryIcon} />
-                    <SwitchField
-                      name="engineFailure_warningLightsBattery" // Ustaw nazwę pola
-                    />
+                    <SwitchField name="engineFailure_warningLightsBattery" />
                   </Box>
                 </SimpleCard>
               </Stack>
             </>
           )}
-          {selectedFaultType === 2 && <>{/* Dodatkowe pola dla Zawieszenia */}</>}
+          {selectedFaultType === 2 && <></>}
           {/* ... inne warunki */}
         </Box>
         {selectedFaultType && (

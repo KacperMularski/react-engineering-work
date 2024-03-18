@@ -1,54 +1,26 @@
-import { useTheme } from '@emotion/react';
 import { LoadingButton } from '@mui/lab';
-import { Paragraph } from 'app/components/Typography';
-import useAuth from 'app/hooks/useAuth';
 import { Formik } from 'formik';
 import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { db } from '../../../firebase';
-import { doc, setDoc } from 'firebase/firestore';
-import MuiDialogContent from '@mui/material/DialogContent';
+import { useNavigate } from 'react-router-dom';
 import MuiDialogTitle from '@mui/material/DialogTitle';
 import { SimpleCard, Breadcrumb } from 'app/components';
-import Typography from '@mui/material/Typography';
-import CloseIcon from '@mui/icons-material/Close';
 import {
   styled,
   Box,
   Stack,
   Grid,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
   Alert,
   IconButton,
-  Icon,
-  TablePagination,
-  CircularProgress,
   Slide,
-  DialogContentText,
-  DialogActions,
-  Button,
-  Snackbar,
-  Checkbox,
-  FormControlLabel,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
   TextField,
-  AccordionDetails,
-  Accordion,
-  AccordionSummary,
-  Dialog,
   FormHelperText,
 } from '@mui/material';
 
 import * as Yup from 'yup';
-
-const sleep = (time) => new Promise((acc) => setTimeout(acc, time));
 
 const Container = styled('div')(({ theme }) => ({
   margin: '30px',
@@ -58,39 +30,6 @@ const Container = styled('div')(({ theme }) => ({
     [theme.breakpoints.down('sm')]: { marginBottom: '16px' },
   },
 }));
-
-const DialogTitleRoot = styled(MuiDialogTitle)(({ theme }) => ({
-  margin: 0,
-  padding: theme.spacing(2),
-  '& .closeButton': {
-    position: 'absolute',
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-    color: theme.palette.grey[500],
-  },
-}));
-
-const DialogTitle = (props) => {
-  const { children, onClose } = props;
-  return (
-    <DialogTitleRoot disableTypography>
-      <Typography variant="h6">{children}</Typography>
-      {onClose ? (
-        <IconButton aria-label="Close" className="closeButton" onClick={onClose}>
-          <CloseIcon />
-        </IconButton>
-      ) : null}
-    </DialogTitleRoot>
-  );
-};
-
-const DialogContent = styled(MuiDialogContent)(({ theme }) => ({
-  '&.root': { padding: theme.spacing(2) },
-}));
-
-const Transition = React.forwardRef(function Transition(props, ref) {
-  return <Slide direction="up" ref={ref} {...props} />;
-});
 
 // inital login credentials
 const initialValues = {
@@ -114,14 +53,13 @@ const validationSchema = Yup.object().shape({
   email: Yup.string().email('Nieprawidłowy adres email').required('Adres email jest wymagany!'),
   name: Yup.string().required('Imie jest wymagane'),
   surname: Yup.string().required('Nazwisko jest wymagane'),
-  role: Yup.string().required('Rola jest wymagana'), // Dodaj walidację dla nowego pola
+  role: Yup.string().required('Rola jest wymagana'),
 });
 
 const AdminUsersConfigAddNew = () => {
-  const theme = useTheme();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
 
+  const [loading, setLoading] = useState(false);
   const [registerError, setRegisterError] = useState(false);
 
   const handleFormSubmit = async (values) => {

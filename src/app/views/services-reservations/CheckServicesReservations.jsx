@@ -27,25 +27,19 @@ import {
   MenuItem,
 } from '@mui/material';
 import {
-  addDoc,
   collection,
   doc,
-  setDoc,
   query,
   where,
   getDocs,
   orderBy,
   limit,
   startAfter,
-  endBefore,
-  limitToLast,
   updateDoc,
   deleteDoc,
-  Timestamp,
 } from 'firebase/firestore';
 import { db } from 'firebase';
 import CloseIcon from '@mui/icons-material/Close';
-import Typography from '@mui/material/Typography';
 import Dialog from '@mui/material/Dialog';
 import MuiDialogContent from '@mui/material/DialogContent';
 import MuiDialogTitle from '@mui/material/DialogTitle';
@@ -56,16 +50,6 @@ const Container = styled('div')(({ theme }) => ({
   '& .breadcrumb': {
     marginBottom: '30px',
     [theme.breakpoints.down('sm')]: { marginBottom: '16px' },
-  },
-}));
-
-const StyledTable = styled(Table)(() => ({
-  whiteSpace: 'pre',
-  '& thead': {
-    '& tr': { '& th': { paddingLeft: 0, paddingRight: 0 } },
-  },
-  '& tbody': {
-    '& tr': { '& td': { paddingLeft: 0, textTransform: 'capitalize' } },
   },
 }));
 
@@ -83,8 +67,8 @@ const DialogTitleRoot = styled(MuiDialogTitle)(({ theme }) => ({
 const DialogTitle = (props) => {
   const { children, onClose } = props;
   return (
-    <DialogTitleRoot disableTypography>
-      <Typography variant="h6">{children}</Typography>
+    <DialogTitleRoot>
+      {children}
       {onClose ? (
         <IconButton aria-label="Close" className="closeButton" onClick={onClose}>
           <CloseIcon />
@@ -118,7 +102,7 @@ function CheckServicesReservations() {
   }, []);
   const { user } = useAuth();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(2);
+  const [rowsPerPage, setRowsPerPage] = useState(3);
   const [totalCount, setTotalCount] = useState(0);
   const [pageDocs, setPageDocs] = useState({});
 
@@ -210,6 +194,10 @@ function CheckServicesReservations() {
     }
     setOpenDialogConf(false);
     setOpenSuccessSnackbar(true);
+    startLoading();
+    setPage(0);
+    fetchTotalCount();
+    fetchData();
   };
 
   function createQueryConditions(reservationsType) {

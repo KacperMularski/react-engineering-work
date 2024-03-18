@@ -19,8 +19,6 @@ import {
   DialogActions,
   Button,
   Snackbar,
-  Checkbox,
-  FormControlLabel,
   FormControl,
   InputLabel,
   Select,
@@ -39,15 +37,12 @@ import {
   addDoc,
   collection,
   doc,
-  setDoc,
   query,
   where,
   getDocs,
   orderBy,
   limit,
   startAfter,
-  endBefore,
-  limitToLast,
   updateDoc,
   deleteDoc,
 } from 'firebase/firestore';
@@ -67,16 +62,6 @@ const Container = styled('div')(({ theme }) => ({
   },
 }));
 
-const StyledTable = styled(Table)(() => ({
-  whiteSpace: 'pre',
-  '& thead': {
-    '& tr': { '& th': { paddingLeft: 0, paddingRight: 0 } },
-  },
-  '& tbody': {
-    '& tr': { '& td': { paddingLeft: 0, textTransform: 'capitalize' } },
-  },
-}));
-
 const DialogTitleRoot = styled(MuiDialogTitle)(({ theme }) => ({
   margin: 0,
   padding: theme.spacing(2),
@@ -91,8 +76,8 @@ const DialogTitleRoot = styled(MuiDialogTitle)(({ theme }) => ({
 const DialogTitle = (props) => {
   const { children, onClose } = props;
   return (
-    <DialogTitleRoot disableTypography>
-      <Typography variant="h6">{children}</Typography>
+    <DialogTitleRoot>
+      {children}
       {onClose ? (
         <IconButton aria-label="Close" className="closeButton" onClick={onClose}>
           <CloseIcon />
@@ -124,15 +109,17 @@ function WorkerServicesReservations() {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
-
+  //Filtrowanie wyników
   const [status, setStatus] = useState('');
   const [serviceType, setServiceType] = useState('');
   const [dateSort, setDateSort] = useState('desc');
   const [isActive, setIsActive] = useState('');
+  //Paginacja
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(4);
   const [totalCount, setTotalCount] = useState(0);
   const [pageDocs, setPageDocs] = useState({});
+  //Okna dialogowe i loading
   const [openDialog, setOpenDialog] = useState(false);
   const [openDialogConf, setOpenDialogConf] = useState(false);
   const [openSuccessSnackbar, setOpenSuccessSnackbar] = useState(false);
@@ -140,10 +127,10 @@ function WorkerServicesReservations() {
   const [errorSnackbarMessage, setErrorSnackbarMessage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
-
+  //Wybrana rezerwacja
   const [reservations, setReservations] = useState([]);
   const [selectedReservation, setSelectedReservation] = useState(null);
-
+  //Edycja rezerwacji
   const [editReservationStatus, setEditReservationStatus] = useState('');
   const [clientReservationNote, setClientReservationNote] = useState('');
 
@@ -211,13 +198,6 @@ function WorkerServicesReservations() {
     startLoading();
     fetchTotalCount();
     fetchData();
-  };
-
-  const startLoading = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
   };
 
   const handleChangePage = (_, newPage) => {
@@ -333,7 +313,7 @@ function WorkerServicesReservations() {
       const querySnapshot = await getDocs(q);
       setTotalCount(querySnapshot.size);
     } catch (error) {
-      console.error('Error fetching total count:', error);
+      console.error('Błąd wczytywania liczby wyników: ', error);
     }
   };
 
@@ -351,7 +331,7 @@ function WorkerServicesReservations() {
           limit(rowsPerPage)
         );
       } else {
-        const startAtDoc = pageDocs[page] || null; // Adjust to use the current page
+        const startAtDoc = pageDocs[page] || null;
         q = query(
           servicesReservationsRef,
           ...conditions,
@@ -370,17 +350,28 @@ function WorkerServicesReservations() {
 
       if (querySnapshot.docs.length > 0) {
         const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-        setPageDocs((prev) => ({ ...prev, [page + 1]: lastDoc })); // Store the last document of the current page for the next page
+        setPageDocs((prev) => ({ ...prev, [page + 1]: lastDoc }));
       }
     } catch (error) {
-      console.log('Błąd:', error);
+      console.log('Błąd: ', error);
     }
+  };
+
+  const startLoading = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
   };
 
   useEffect(() => {
     startLoading();
     fetchTotalCount();
     fetchData();
+    return () => {
+      setLoading(false);
+      setTimeout(0);
+    };
   }, [page, rowsPerPage, status, isActive, serviceType, dateSort]);
 
   return (

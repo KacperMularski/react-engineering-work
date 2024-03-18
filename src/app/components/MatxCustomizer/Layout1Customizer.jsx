@@ -116,10 +116,10 @@ const Layout1Customizer = ({ settings, handleChange, handleControlChange }) => {
                 <BadgeSelected
                   color="primary"
                   badgeContent={<Icon>done</Icon>}
-                  invisible={settings.layout1Settings.leftSidebar.bgImgURL !== bg}
+                  invisible={settings.layout1Settings.leftSidebar.bgimgurl !== bg}
                   sx={{ width: '100%', height: '100%', cursor: 'pointer' }}
                 >
-                  <Paper onClick={() => handleChange('layout1Settings.leftSidebar.bgImgURL', bg)}>
+                  <Paper onClick={() => handleChange('layout1Settings.leftSidebar.bgimgurl', bg)}>
                     <IMG src={bg} alt="" />
                   </Paper>
                 </BadgeSelected>

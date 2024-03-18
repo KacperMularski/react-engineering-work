@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import { Dialog, DialogContent } from '@mui/material';
 import { Alert } from '@mui/material';
 
 const SuccessDialog = ({ open, message }) => {

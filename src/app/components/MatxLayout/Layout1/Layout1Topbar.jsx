@@ -1,8 +1,8 @@
 import { Avatar, Hidden, Icon, IconButton, MenuItem, useMediaQuery } from '@mui/material';
 import { Box, styled, useTheme } from '@mui/system';
-import { MatxMenu, MatxSearchBox } from 'app/components';
+import { MatxMenu } from 'app/components';
 import { themeShadows } from 'app/components/MatxTheme/themeColors';
-import { NotificationProvider } from 'app/contexts/NotificationContext';
+
 import useAuth from 'app/hooks/useAuth';
 import useSettings from 'app/hooks/useSettings';
 import { topBarHeight } from 'app/utils/constant';
@@ -10,9 +10,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { H2, Span } from '../../../components/Typography';
 import NotificationBar from '../../NotificationBar/NotificationBar';
-import ShoppingCart from '../../ShoppingCart';
 import { db } from 'firebase';
-import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 const StyledIconButton = styled(IconButton)(({ theme }) => ({
   color: theme.palette.text.primary,
@@ -154,11 +153,8 @@ const Layout1Topbar = () => {
         </Box>
 
         <Box display="flex" alignItems="center">
-          {/* <MatxSearchBox /> */}
-          <NotificationProvider>
-            <NotificationBar />
-          </NotificationProvider>
-          {/* <ShoppingCart /> */}
+          <NotificationBar />
+
           <MatxMenu
             menuButton={
               <UserMenu>
@@ -184,11 +180,6 @@ const Layout1Topbar = () => {
                 <Span> Profil </Span>
               </Link>
             </StyledItem>
-
-            {/* <StyledItem>
-              <Icon> settings </Icon>
-              <Span> Settings </Span>
-            </StyledItem> */}
 
             <StyledItem onClick={logout}>
               <Icon> power_settings_new </Icon>

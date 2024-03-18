@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Autocomplete, FormHelperText } from '@mui/material';
-import { Field, useFormikContext, ErrorMessage } from 'formik';
+import { Autocomplete } from '@mui/material';
+import { Field, useFormikContext } from 'formik';
 import { TextField } from 'formik-material-ui';
 
 function AutocompleteField({ name, label, options, onChange }) {
@@ -8,15 +8,15 @@ function AutocompleteField({ name, label, options, onChange }) {
   const [value, setValue] = useState('');
 
   const handleChange = (_, selectedOption) => {
-    const selectedValue = selectedOption !== null ? selectedOption : ''; // Sprawdź, czy selectedOption nie jest null    console.log('Selected value:', selectedValue);
+    const selectedValue = selectedOption !== null ? selectedOption : '';
     setValue(selectedValue);
     setFieldValue(name, selectedValue);
 
-    // Dodaj wywołanie funkcji onChange, jeśli została przekazana
     if (onChange) {
       onChange(selectedValue);
     }
   };
+
   return (
     <>
       <Autocomplete
@@ -32,9 +32,9 @@ function AutocompleteField({ name, label, options, onChange }) {
             label={label}
             variant="outlined"
             fullWidth
+            error={Boolean(errors[name] && touched[name])}
           />
         )}
-        error={Boolean(errors[name] && touched[name])}
       />
     </>
   );

@@ -5,17 +5,13 @@ import {
   query,
   getDocs,
   startAfter,
-  endBefore,
   limit,
-  limitToLast,
   where,
   updateDoc,
   doc,
 } from 'firebase/firestore';
 import { db } from 'firebase';
 import CloseIcon from '@mui/icons-material/Close';
-import Typography from '@mui/material/Typography';
-import Dialog from '@mui/material/Dialog';
 import {
   Box,
   IconButton,
@@ -27,7 +23,6 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  CardContent,
   Grid,
   Alert,
   Slide,
@@ -36,6 +31,7 @@ import {
   DialogActions,
   Snackbar,
   CircularProgress,
+  Dialog,
 } from '@mui/material';
 import useAuth from 'app/hooks/useAuth';
 import { Breadcrumb, SimpleCard } from 'app/components';
@@ -75,8 +71,8 @@ const DialogTitleRoot = styled(MuiDialogTitle)(({ theme }) => ({
 const DialogTitle = (props) => {
   const { children, onClose } = props;
   return (
-    <DialogTitleRoot disableTypography>
-      <Typography variant="h6">{children}</Typography>
+    <DialogTitleRoot>
+      {children}
       {onClose ? (
         <IconButton aria-label="Close" className="closeButton" onClick={onClose}>
           <CloseIcon />
@@ -110,7 +106,7 @@ function ActiveRepairOrders() {
   }, []);
   const { user } = useAuth();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(2);
+  const [rowsPerPage, setRowsPerPage] = useState(3);
   const [orders, setOrders] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [pageDocs, setPageDocs] = useState({});
@@ -132,6 +128,10 @@ function ActiveRepairOrders() {
 
   useEffect(() => {
     startLoading();
+    return () => {
+      setLoading(false);
+      setTimeout(0);
+    };
   }, []);
 
   const handleChangePage = (_, newPage) => {
@@ -172,11 +172,12 @@ function ActiveRepairOrders() {
         isActive: false,
       });
     } catch (error) {
-      console.error('Błąd podczas aktualizacji dokumentu:', error);
+      console.error('Błąd podczas usuwania dokumentu', error);
     }
     setOpenDialogConf(false);
     setOpenSuccessSnackbar(true);
     startLoading();
+    setPage(0);
     fetchTotalCount();
     fetchData();
   };
@@ -192,7 +193,7 @@ function ActiveRepairOrders() {
       const querySnapshot = await getDocs(q);
       setTotalCount(querySnapshot.size);
     } catch (error) {
-      console.error('Error fetching total count:', error);
+      console.error('Błąd wczytywania liczby dokumentów: ', error);
     }
   };
 
@@ -209,7 +210,7 @@ function ActiveRepairOrders() {
           limit(rowsPerPage)
         );
       } else {
-        const startAtDoc = pageDocs[page] || null; // Adjust to use the current page
+        const startAtDoc = pageDocs[page] || null;
         q = query(
           repairOrdersRef,
           orderBy('dateTime'),
@@ -229,10 +230,10 @@ function ActiveRepairOrders() {
 
       if (querySnapshot.docs.length > 0) {
         const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-        setPageDocs((prev) => ({ ...prev, [page + 1]: lastDoc })); // Store the last document of the current page for the next page
+        setPageDocs((prev) => ({ ...prev, [page + 1]: lastDoc })); // Ostatni dokument
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Błąd pobierania danych: ', error);
     }
   };
 

@@ -31,10 +31,6 @@ const ForgotPasswordRoot = styled(JustifyBox)(() => ({
   },
 }));
 
-const validationSchema = Yup.object().shape({
-  email: Yup.string().email('Nieprawidłowy adres email').required('Adres email jest wymagany!'),
-});
-
 const ForgotPassword = () => {
   const navigate = useNavigate();
   const { resetPassword } = useAuth();

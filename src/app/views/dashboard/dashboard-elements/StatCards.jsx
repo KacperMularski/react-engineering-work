@@ -1,4 +1,4 @@
-import { Box, Card, Grid, Icon, IconButton, styled, Tooltip } from '@mui/material';
+import { Box, Card, Grid, Icon, styled } from '@mui/material';
 import { Small } from 'app/components/Typography';
 
 const StyledCard = styled(Card)(({ theme }) => ({

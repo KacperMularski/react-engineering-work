@@ -52,7 +52,7 @@ const StatCards2 = () => {
       <Grid item xs={12} md={6}>
         <Card elevation={3} sx={{ p: 2 }}>
           <ContentBox>
-            <FabIcon size="medium" sx={{ background: 'rgba(9, 182, 109, 0.15)' }}>
+            <FabIcon hover="none" size="medium" sx={{ background: 'rgba(9, 182, 109, 0.15)' }}>
               <Icon sx={{ color: '#08ad6c' }}>insert_emoticon</Icon>
             </FabIcon>
             <H3 textcolor={'#08ad6c'}>Pozytywne opinie</H3>

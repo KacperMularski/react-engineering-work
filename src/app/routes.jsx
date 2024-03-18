@@ -1,7 +1,5 @@
 import AuthGuard from 'app/auth/AuthGuard';
-import chartsRoute from 'app/views/charts/ChartsRoute';
 import dashboardRoutes from 'app/views/dashboard/DashboardRoutes';
-import materialRoutes from 'app/views/material-kit/MaterialRoutes';
 import profileRoutes from './views/profile/ProfileRoutes';
 import NotFound from 'app/views/sessions/NotFound';
 import sessionRoutes from 'app/views/sessions/SessionRoutes';
@@ -14,8 +12,8 @@ import workerRepairOrdersRoutes from './views/worker-repair-orders/WorkerRepairO
 import workerServicesReservationsRoutes from './views/worker-services-reservations/WorkerServicesReservationsRoutes';
 import workerEventsCalendar from './views/worker-events-calendar/WorkerEventsCalendarRoutes';
 import adminUsersConfigRoutes from './views/admin-users-config/AdminUsersConfigRoutes';
+import workerAddRuleRoutes from './views/worker-system-rules/WorkerAddRuleRoutes';
 const routes = [
-  // AuthGuard wrapper for protected routes
   {
     element: (
       <AuthGuard>
@@ -24,8 +22,6 @@ const routes = [
     ),
     children: [
       ...dashboardRoutes,
-      ...chartsRoute,
-      ...materialRoutes,
       ...profileRoutes,
       ...repairOrderRoutes,
       ...checkRepairOrderRoutes,
@@ -34,6 +30,7 @@ const routes = [
       ...workerServicesReservationsRoutes,
       ...workerEventsCalendar,
       ...adminUsersConfigRoutes,
+      ...workerAddRuleRoutes,
     ],
   },
 

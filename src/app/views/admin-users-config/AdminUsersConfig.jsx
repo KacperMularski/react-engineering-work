@@ -15,12 +15,9 @@ import {
   TablePagination,
   CircularProgress,
   Slide,
-  DialogContentText,
   DialogActions,
   Button,
   Snackbar,
-  Checkbox,
-  FormControlLabel,
   FormControl,
   InputLabel,
   Select,
@@ -40,26 +37,19 @@ import {
   addDoc,
   collection,
   doc,
-  setDoc,
   query,
   where,
   getDocs,
   orderBy,
   limit,
   startAfter,
-  endBefore,
-  limitToLast,
   updateDoc,
-  deleteDoc,
 } from 'firebase/firestore';
 import { db } from 'firebase';
 import Typography from '@mui/material/Typography';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { SimpleCard, Breadcrumb } from 'app/components';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { makeStyles } from '@mui/styles';
-
-const sleep = (time) => new Promise((acc) => setTimeout(acc, time));
 
 const Container = styled('div')(({ theme }) => ({
   margin: '30px',
@@ -84,8 +74,8 @@ const DialogTitleRoot = styled(MuiDialogTitle)(({ theme }) => ({
 const DialogTitle = (props) => {
   const { children, onClose } = props;
   return (
-    <DialogTitleRoot disableTypography>
-      <Typography variant="h6">{children}</Typography>
+    <DialogTitleRoot>
+      {children}
       {onClose ? (
         <IconButton aria-label="Close" className="closeButton" onClick={onClose}>
           <CloseIcon />
@@ -118,6 +108,8 @@ function AdminUsersConfig() {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
+
+  //Filtrowanie
   const [surnameSearch, setSurnameSearch] = useState('');
   const [roleSearch, setRoleSearch] = useState('');
   const [isBlockedSearch, setIsBlockedSearch] = useState(false);
@@ -127,8 +119,8 @@ function AdminUsersConfig() {
   const [rowsPerPage, setRowsPerPage] = useState(4);
   const [totalCount, setTotalCount] = useState(0);
   const [pageDocs, setPageDocs] = useState({});
+
   //Alerty, dialogi i ładowanie
-  const [openDialog, setOpenDialog] = useState(false);
   const [openDialogConf, setOpenDialogConf] = useState(false);
   const [openNotificationSendDialog, setOpenNotificationSendDialog] = useState(false);
   const [openSuccessSnackbar, setOpenSuccessSnackbar] = useState(false);
@@ -137,9 +129,11 @@ function AdminUsersConfig() {
   const [loading, setLoading] = useState(false);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
 
+  //Edycja użytkownika
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [editRole, setEditRole] = useState('');
+
   //powiadomienia
   const [notificationTitle, setNotificationTitle] = useState('');
   const [notificationText, setNotificationText] = useState('');
@@ -287,13 +281,6 @@ function AdminUsersConfig() {
     setNotificationText(event.target.value);
   };
 
-  const startLoading = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-  };
-
   const handleChangePage = (_, newPage) => {
     setPage(newPage);
     setUsers([]);
@@ -313,53 +300,6 @@ function AdminUsersConfig() {
   const handleCloseErrorSnackbar = () => {
     setOpenErrorSnackbar(false);
   };
-
-  // const handleSubmitEdit = async (event) => {
-  //   event.preventDefault();
-
-  //   setLoadingSubmit(true);
-  //   await sleep(2000);
-  //   const servicesReservationsEditRef = doc(db, 'services-reservations', selectedReservation.id);
-  //   const notificationsRef = collection(db, 'notifications');
-  //   const statusNotificationType = 'Zmiana statusu rezerwacji';
-  //   const notificationContent =
-  //     'Status twojej rezerwacji na ' +
-  //     selectedReservation.data.serviceType +
-  //     ' został zmieniony z ' +
-  //     selectedReservation.data.status +
-  //     ' na ' +
-  //     editReservationStatus +
-  //     '. ' +
-  //     clientReservationNote;
-  //   let currentDate = new Date();
-  //   try {
-  //     if (editReservationStatus === 'Anulowano' || editReservationStatus === 'Ukończono') {
-  //       await updateDoc(servicesReservationsEditRef, {
-  //         status: editReservationStatus,
-  //         isActive: false,
-  //       });
-  //     } else {
-  //       await updateDoc(servicesReservationsEditRef, {
-  //         status: editReservationStatus,
-  //       });
-  //     }
-
-  //     await addDoc(notificationsRef, {
-  //       uid: selectedReservation.data.uid,
-  //       type: statusNotificationType,
-  //       content: notificationContent,
-  //       dateTime: currentDate,
-  //     });
-
-  //     setOpenSuccessSnackbar(true);
-  //   } catch (error) {
-  //     setErrorSnackbarMessage('Błąd serwera: ', error);
-  //     setOpenErrorSnackbar(true);
-  //   }
-  //   setLoadingSubmit(false);
-  //   startLoading(true);
-  //   fetchData();
-  // };
 
   function createQueryConditions(surnameSearch, roleSearch, isBlockedSearch) {
     let conditions = [];
@@ -408,7 +348,7 @@ function AdminUsersConfig() {
       if (page === 0) {
         q = query(usersRef, ...conditions, orderBy('surname'), limit(rowsPerPage));
       } else {
-        const startAtDoc = pageDocs[page] || null; // Adjust to use the current page
+        const startAtDoc = pageDocs[page] || null;
         q = query(
           usersRef,
           ...conditions,
@@ -428,17 +368,29 @@ function AdminUsersConfig() {
 
       if (querySnapshot.docs.length > 0) {
         const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-        setPageDocs((prev) => ({ ...prev, [page + 1]: lastDoc })); // Store the last document of the current page for the next page
+        setPageDocs((prev) => ({ ...prev, [page + 1]: lastDoc })); // Ostatni dokument
       }
     } catch (error) {
       console.log('Błąd:', error);
     }
   };
 
+  const startLoading = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+  };
+
   useEffect(() => {
     startLoading();
     fetchTotalCount();
     fetchData();
+
+    return () => {
+      setLoading(false);
+      setTimeout(0);
+    };
   }, [page, rowsPerPage, surnameSearch, roleSearch, isBlockedSearch]);
 
   return (
@@ -476,7 +428,7 @@ function AdminUsersConfig() {
                         <Select
                           labelId="select-label-1"
                           id="select-label-1"
-                          name={roleSearch}
+                          name="roleSearch"
                           label="Rola"
                           onChange={handleChangeRoleSearch}
                           defaultValue={'all'}
@@ -494,7 +446,7 @@ function AdminUsersConfig() {
                         <Select
                           labelId="select-label-2"
                           id="select-label-2"
-                          name={isBlockedSearch}
+                          name="isBlockedSearch"
                           label="Pokaż zablokowanych"
                           onChange={handleChangeIsBlockedSearch}
                           defaultValue={false}
